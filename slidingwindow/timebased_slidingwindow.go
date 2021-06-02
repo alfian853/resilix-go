@@ -15,32 +15,32 @@ type TimeBasedSlidingWindow struct {
 	config      *conf.Configuration
 	successQue  *lane.Deque
 	failureQue  *lane.Deque
-	lastAttempt *int64
 }
 
-func NewTimeBasedSlidingWindow(config *conf.Configuration){
+func NewTimeBasedSlidingWindow(config *conf.Configuration) *TimeBasedSlidingWindow {
 	swindow := TimeBasedSlidingWindow{}
-	*swindow.lock = consts.SwLock_Available
+	swindow.lock = util.NewInt32(consts.SwLock_Available)
 	swindow.config = config
-	swindow.successQue = &lane.Deque{}
-	swindow.failureQue = &lane.Deque{}
-	*swindow.lastAttempt = 0
+	swindow.successQue = lane.NewDeque()
+	swindow.failureQue = lane.NewDeque()
+	swindow.DefaultSlidingWindow.Decorate(&swindow, config)
+	return &swindow
 }
 
 func (window *TimeBasedSlidingWindow) handleAckAttempt(success bool) {
 	lastAttempt := util.GetTimestamp()
-	atomic.SwapInt64(window.lastAttempt, lastAttempt)
 
 	if success {
-		window.successQue.Append(window.lastAttempt)
+		window.successQue.Append(lastAttempt)
 	} else {
-		window.failureQue.Append(window.lastAttempt)
+		window.failureQue.Append(lastAttempt)
 	}
 
 	window.examineAttemptWindow()
 }
 
 func (window *TimeBasedSlidingWindow) getQueSize() int {
+	window.examineAttemptWindow()
 	return window.successQue.Size() + window.failureQue.Size()
 }
 
@@ -70,11 +70,11 @@ func (window *TimeBasedSlidingWindow) examineAttemptWindow() {
 
 	if atomic.SwapInt32(window.lock, consts.SwLock_Clearing) < consts.SwLock_Clearing {
 		for !window.successQue.Empty() &&
-			window.successQue.First().(int64) < (atomic.LoadInt64(window.lastAttempt) -window.config.SlidingWindowTimeRange) {
+			window.successQue.First().(int64) < util.GetTimestamp() -window.config.SlidingWindowTimeRange {
 			window.successQue.Shift()
 		}
 		for !window.failureQue.Empty() &&
-			window.failureQue.First().(int64) < (atomic.LoadInt64(window.lastAttempt) -window.config.SlidingWindowTimeRange) {
+			window.failureQue.First().(int64) < util.GetTimestamp() -window.config.SlidingWindowTimeRange {
 			window.failureQue.Shift()
 		}
 
