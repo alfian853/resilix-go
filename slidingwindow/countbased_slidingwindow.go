@@ -2,62 +2,70 @@ package slidingwindow
 
 import (
 	"github.com/oleiade/lane"
-	"resilix-go/context"
+	conf "resilix-go/config"
+	"resilix-go/consts"
+	"resilix-go/util"
 	"sync/atomic"
 )
 
-const (
-	Available = 1
-	NotAvailable = 0
-)
-
 type CountBasedSlidingWindow struct {
-	defaultSlidingWindow
-	lock *int32
-	config *context.Configuration
+	DefaultSlidingWindow
+	DefaultSlidingWindowExt
+	lock       consts.SwLock
+	config     *conf.Configuration
 	errorCount *int32
-	windowQue *lane.Deque
+	windowQue  *lane.Deque
 }
 
-func (window *CountBasedSlidingWindow) handleAckAttempt(success bool) {
-	window.windowQue.Append(success)
+func NewCountBasedSlidingWindow(config *conf.Configuration) *CountBasedSlidingWindow {
+	swindow := CountBasedSlidingWindow{}
+	swindow.lock = util.NewInt32(consts.SwLock_Available)
+	swindow.errorCount = util.NewInt32(0)
+	swindow.config = config
+	swindow.windowQue = lane.NewDeque()
+	swindow.DefaultSlidingWindow.Decorate(&swindow, config)
+	return &swindow
+}
+
+func (swindow *CountBasedSlidingWindow) handleAckAttempt(success bool) {
+	swindow.windowQue.Append(success)
 
 	if !success {
-		atomic.AddInt32(window.errorCount, 1)
+		atomic.AddInt32(swindow.errorCount, 1)
 	}
 
-	window.examineAttemptWindow()
+	swindow.examineAttemptWindow()
 }
 
-func (window *CountBasedSlidingWindow) getQueSize() int {
-	return window.windowQue.Size()
+func (swindow *CountBasedSlidingWindow) getQueSize() int {
+	return swindow.windowQue.Size()
 }
 
-func (window *CountBasedSlidingWindow) getErrorRateAfterMinCallSatisfied() float32 {
+func (swindow *CountBasedSlidingWindow) getErrorRateAfterMinCallSatisfied() float32 {
 
-	if window.windowQue.Size() == 0 {
+	if swindow.windowQue.Size() == 0 {
 		return 0
 	}
 
-	return float32(atomic.LoadInt32(window.errorCount)) / float32(window.windowQue.Size())
+	return float32(atomic.LoadInt32(swindow.errorCount)) / float32(swindow.windowQue.Size())
 }
 
-func (window *CountBasedSlidingWindow) clear() {
-	defer atomic.SwapInt32(window.lock, Available)
+func (swindow *CountBasedSlidingWindow) Clear() {
+	defer atomic.SwapInt32(swindow.lock, consts.SwLock_Available)
 
-	if atomic.SwapInt32(window.lock, NotAvailable) == Available {
-		window.windowQue.Pop()
+	if atomic.SwapInt32(swindow.lock, consts.SwLock_ClearingAll) < consts.SwLock_ClearingAll {
+		swindow.windowQue = &lane.Deque{}
 	}
 }
 
-func (window *CountBasedSlidingWindow) examineAttemptWindow() {
+func (swindow *CountBasedSlidingWindow) examineAttemptWindow() {
 
-	defer atomic.SwapInt32(window.lock, Available)
+	defer atomic.SwapInt32(swindow.lock, consts.SwLock_Available)
 
-	if atomic.SwapInt32(window.lock, NotAvailable) == Available {
-		for window.windowQue.Size() > window.config.SlidingWindowMaxSize {
-			if window.windowQue.First() == false {
-				atomic.AddInt32(window.errorCount, -1)
+	if atomic.SwapInt32(swindow.lock, consts.SwLock_Clearing) < consts.SwLock_Clearing {
+		for swindow.windowQue.Size() > swindow.config.SlidingWindowMaxSize {
+			if swindow.windowQue.Shift() == false {
+				atomic.AddInt32(swindow.errorCount, -1)
 			}
 		}
 	}

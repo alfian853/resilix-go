@@ -1,6 +1,7 @@
 package statehandler
 
 import (
+	conf "resilix-go/config"
 	"resilix-go/context"
 	"resilix-go/slidingwindow"
 )
@@ -21,7 +22,7 @@ type DefaultStateHandler struct {
 	stateContainer StateContainer
 	context *context.Context
 	slidingWindow slidingwindow.SlidingWindow
-	configuration *context.Configuration
+	configuration *conf.Configuration
 }
 
 func (stateHandler *DefaultStateHandler) isSlidingWindowActive() bool {
@@ -30,11 +31,11 @@ func (stateHandler *DefaultStateHandler) isSlidingWindowActive() bool {
 
 func (stateHandler *DefaultStateHandler) Decorate(ctx *context.Context, stateContainer StateContainer) *DefaultStateHandler {
 	stateHandler.context = ctx
-	stateHandler.slidingWindow = ctx.SlidingWindow
-	stateHandler.configuration = &ctx.Configuration
+	stateHandler.slidingWindow = ctx.SWindow
+	stateHandler.configuration = ctx.Config
 	stateHandler.stateContainer = stateContainer
 
-	ctx.SlidingWindow.SetActive(stateHandler.isSlidingWindowActive())
+	ctx.SWindow.SetActive(stateHandler.isSlidingWindowActive())
 
 	return stateHandler
 }
@@ -46,7 +47,7 @@ func (stateHandler *DefaultStateHandler) PanicExecute(fun func() error) (bool, e
 	}
 	err := fun()
 
-	stateHandler.context.SlidingWindow.AckAttempt(err == nil)
+	stateHandler.context.SWindow.AckAttempt(err == nil)
 	stateHandler.evaluateState()
 
 	return true, err
@@ -59,7 +60,7 @@ func (stateHandler *DefaultStateHandler) PanicExecuteWithReturn(fun func()(inter
 	}
 	result, err := fun()
 
-	stateHandler.context.SlidingWindow.AckAttempt(err == nil)
+	stateHandler.context.SWindow.AckAttempt(err == nil)
 	stateHandler.evaluateState()
 
 	return true, result, err

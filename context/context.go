@@ -1,22 +1,19 @@
 package context
 
 import (
-	"resilix-go/retry"
+	"resilix-go/config"
 	"resilix-go/slidingwindow"
 )
 
 type Context struct {
-	Configuration Configuration
-	SlidingWindow slidingwindow.SlidingWindow
+	Config  *config.Configuration
+	SWindow slidingwindow.SlidingWindow
 }
 
-type Configuration struct {
-	RetryStrategy                retry.Strategy
-	SlidingWindowStrategy        slidingwindow.Strategy
-	SlidingWindowTimeRange       uint
-	SlidingWindowMaxSize         int
-	MinimumCallToEvaluate        int
-	ErrorThreshold               float32
-	WaitDurationInOpenState      int64
-	NumberOfRetryInHalfOpenState int32
+func NewContextDefault() *Context {
+	ctx := Context{}
+	ctx.Config = config.NewConfiguration()
+	ctx.SWindow = slidingwindow.NewCountBasedSlidingWindow(ctx.Config)
+
+	return &ctx
 }

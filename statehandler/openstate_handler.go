@@ -2,7 +2,7 @@ package statehandler
 
 import (
 	"resilix-go/context"
-	"time"
+	"resilix-go/util"
 )
 
 type OpenStateHandler struct {
@@ -16,7 +16,7 @@ func NewOpenStateHandler() *OpenStateHandler {
 
 func (stateHandler *OpenStateHandler) Decorate(ctx *context.Context, stateContainer StateContainer) *OpenStateHandler {
 	stateHandler.DefaultStateHandler.Decorate(ctx, stateContainer)
-	stateHandler.timeEnd = getTimeStamp() + stateHandler.configuration.WaitDurationInOpenState
+	stateHandler.timeEnd = util.GetTimestamp() + stateHandler.configuration.WaitDurationInOpenState
 
 	return stateHandler
 }
@@ -31,12 +31,8 @@ func (stateHandler *OpenStateHandler) acquirePermission() bool {
 
 func (stateHandler *OpenStateHandler) evaluateState() {
 
-	if stateHandler.timeEnd <= getTimeStamp() {
+	if stateHandler.timeEnd <= util.GetTimestamp() {
 		newHandler := NewHalfOpenStateHandler().Decorate(stateHandler.context, stateHandler.stateContainer)
 		stateHandler.stateContainer.setStateHandler(newHandler)
 	}
-}
-
-func getTimeStamp() int64 {
-	return time.Now().UnixNano() / (int64(time.Millisecond)/int64(time.Nanosecond))
 }

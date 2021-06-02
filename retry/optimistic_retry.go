@@ -1,6 +1,8 @@
 package retry
 
 import (
+	conf "resilix-go/config"
+	"resilix-go/consts"
 	"resilix-go/context"
 	"resilix-go/slidingwindow"
 	"sync/atomic"
@@ -13,16 +15,16 @@ type OptimisticRetryManager struct {
 	numberOfRetry *int32
 	numberOfFail  *int32
 	ctx           *context.Context
-	configuration *context.Configuration
+	config        *conf.Configuration
 }
 
 func NewOptimisticRetryManager() *OptimisticRetryManager {return &OptimisticRetryManager{}}
 
 func (retryManager *OptimisticRetryManager) Decorate(ctx *context.Context) *OptimisticRetryManager {
 	retryManager.ctx = ctx
-	retryManager.configuration = &ctx.Configuration
+	retryManager.config = ctx.Config
 
-	ctx.SlidingWindow.AddObserver(retryManager)
+	ctx.SWindow.AddObserver(retryManager)
 	return retryManager
 }
 
@@ -30,7 +32,7 @@ func (retryManager *OptimisticRetryManager) AcquireAndUpdateRetryPermission() bo
 
 	numberOfRetry := atomic.AddInt32(retryManager.numberOfRetry,1) - 1
 
-	if numberOfRetry >= retryManager.configuration.NumberOfRetryInHalfOpenState {
+	if numberOfRetry >= retryManager.config.NumberOfRetryInHalfOpenState {
 		return false
 	}
 
@@ -45,18 +47,18 @@ func (retryManager *OptimisticRetryManager) GetErrorRate() float32 {
 	return float32(*retryManager.numberOfFail) / float32(*retryManager.numberOfRetry)
 }
 
-func (retryManager *OptimisticRetryManager) GetRetryState() RetryState {
+func (retryManager *OptimisticRetryManager) GetRetryState() consts.RetryState {
 	if retryManager.isErrorLimitExceeded() {
-		retryManager.ctx.SlidingWindow.RemoveObserver(retryManager)
-		return REJECTED
+		retryManager.ctx.SWindow.RemoveObserver(retryManager)
+		return consts.REJECTED
 	}
 
-	if atomic.LoadInt32(retryManager.numberOfRetry) >= retryManager.configuration.NumberOfRetryInHalfOpenState {
-		retryManager.ctx.SlidingWindow.RemoveObserver(retryManager)
-		return ACCEPTED
+	if atomic.LoadInt32(retryManager.numberOfRetry) >= retryManager.config.NumberOfRetryInHalfOpenState {
+		retryManager.ctx.SWindow.RemoveObserver(retryManager)
+		return consts.ACCEPTED
 	}
 
-	return ON_GOING
+	return consts.ON_GOING
 }
 
 func (retryManager *OptimisticRetryManager) NotifyOnAckAttempt(success bool) {
@@ -66,5 +68,5 @@ func (retryManager *OptimisticRetryManager) NotifyOnAckAttempt(success bool) {
 }
 
 func (retryManager *OptimisticRetryManager) isErrorLimitExceeded() bool {
-	return retryManager.GetErrorRate() >= retryManager.configuration.ErrorThreshold
+	return retryManager.GetErrorRate() >= retryManager.config.ErrorThreshold
 }

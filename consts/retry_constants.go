@@ -1,6 +1,6 @@
-package retry
+package consts
 
-type Strategy string
+type RetryStrategy string
 type RetryState int
 const (
 	// RetryStrategy

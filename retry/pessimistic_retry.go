@@ -23,9 +23,9 @@ func NewPessimisticRetryManager() *PessimisticRetryManager {return &PessimisticR
 
 func (retryManager *PessimisticRetryManager) Decorate(ctx *context.Context) *PessimisticRetryManager {
 	retryManager.ctx = ctx
-	retryManager.configuration = &ctx.Configuration
+	retryManager.config = ctx.Config
 
-	ctx.SlidingWindow.AddObserver(retryManager)
+	ctx.SWindow.AddObserver(retryManager)
 	return retryManager
 }
 

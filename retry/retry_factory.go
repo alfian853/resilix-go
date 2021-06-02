@@ -1,12 +1,15 @@
 package retry
 
-import "resilix-go/context"
+import (
+	"resilix-go/consts"
+	"resilix-go/context"
+)
 
 func CreateRetryManager(ctx *context.Context) RetryManager {
-	switch ctx.Configuration.RetryStrategy {
-	case RETRY_OPTIMISTIC:
+	switch ctx.Config.RetryStrategy {
+	case consts.RETRY_OPTIMISTIC:
 		return NewOptimisticRetryManager().Decorate(ctx)
-	case RETRY_PESSIMISTIC:
+	case consts.RETRY_PESSIMISTIC:
 		return NewPessimisticRetryManager().Decorate(ctx)
 	}
 

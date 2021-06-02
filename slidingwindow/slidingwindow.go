@@ -1,7 +1,8 @@
 package slidingwindow
 
 import (
-	"resilix-go/context"
+	conf "resilix-go/config"
+	"resilix-go/util"
 	"sync"
 	"sync/atomic"
 )
@@ -27,65 +28,81 @@ const (
 	Inactive = 0
 )
 
-type defaultSlidingWindowExt interface {
+type DefaultSlidingWindowExt interface {
 	handleAckAttempt(success bool)
 	getQueSize() int
 	getErrorRateAfterMinCallSatisfied() float32
 }
 
-type defaultSlidingWindow struct {
+type DefaultSlidingWindow struct {
 	SlidingWindow
-	defaultSlidingWindowExt
+	swindowExt DefaultSlidingWindowExt
 	isActive IsActive
-	config *context.Configuration
+	config *conf.Configuration
 	observerLock sync.Mutex
 	observers []SwObserver
 }
 
-func (sw *defaultSlidingWindow) AddObserver(observer SwObserver) {
-	defer sw.observerLock.Unlock()
-	sw.observerLock.Lock()
-
-	sw.observers = append(sw.observers, observer)
+func (swindow *DefaultSlidingWindow) Decorate(swindowExt DefaultSlidingWindowExt,config *conf.Configuration)  {
+	swindow.swindowExt = swindowExt
+	swindow.isActive = util.NewInt32(Active)
+	swindow.config = config
+	swindow.observerLock = sync.Mutex{}
+	swindow.observers = make([]SwObserver, 0)
 }
 
-func (sw *defaultSlidingWindow) RemoveObserver(observer SwObserver) {
-	defer sw.observerLock.Unlock()
-	sw.observerLock.Lock()
+func (swindow *DefaultSlidingWindow) AddObserver(observer SwObserver) {
+	defer swindow.observerLock.Unlock()
+	swindow.observerLock.Lock()
 
+	swindow.observers = append(swindow.observers, observer)
+}
+
+func (swindow *DefaultSlidingWindow) RemoveObserver(observer SwObserver) {
+	defer swindow.observerLock.Unlock()
+	swindow.observerLock.Lock()
+
+	lenObs := len(swindow.observers)
 	var targetIndex *int
 
-	for i := 0; i < len(sw.observers); i++ {
-		if sw.observers[i] == observer {
+	for i := 0; i < lenObs; i++ {
+		if swindow.observers[i] == observer {
 			targetIndex = &i
 			break
 		}
 	}
 
 	if targetIndex != nil {
-		lastIndex := len(sw.observers) - 1
+		if lenObs == 1 {
+			swindow.observers = swindow.observers[:0]
+			return
+		}
+		lastIndex := lenObs - 1
 
 		// swap target with the last index
-		sw.observers[*targetIndex], sw.observers[lastIndex] =
-			sw.observers[lastIndex - 1], sw.observers[*targetIndex]
+		swindow.observers[*targetIndex], swindow.observers[lastIndex] =
+			swindow.observers[lastIndex], swindow.observers[*targetIndex]
 
-		sw.observers = sw.observers[:lastIndex]
+		swindow.observers = swindow.observers[:lastIndex]
 	}
 }
 
 
-func (sw *defaultSlidingWindow) AckAttempt(success bool) {
+func (swindow *DefaultSlidingWindow) AckAttempt(success bool) {
 
-	if atomic.LoadInt32(sw.isActive) == Active {
-		sw.handleAckAttempt(success)
+	if atomic.LoadInt32(swindow.isActive) == Active {
+		swindow.swindowExt.handleAckAttempt(success)
+		for i:=0; i < len(swindow.observers); i++ {
+			swindow.observers[i].NotifyOnAckAttempt(success)
+		}
 	}
 }
 
-func (sw *defaultSlidingWindow) GetErrorRate() float32 {
-	if sw.getQueSize() < sw.config.MinimumCallToEvaluate {
+func (swindow *DefaultSlidingWindow) GetErrorRate() float32 {
+	if swindow.swindowExt.getQueSize() < swindow.config.MinimumCallToEvaluate {
 		return 0
 	}
 
-	return sw.getErrorRateAfterMinCallSatisfied()
+	return swindow.swindowExt.getErrorRateAfterMinCallSatisfied()
 }
 

@@ -1,5 +1,6 @@
 package statehandler
 
+import "resilix-go/context"
 
 type CloseStateHandler struct {
 	DefaultStateHandler
@@ -7,6 +8,13 @@ type CloseStateHandler struct {
 
 func NewCloseStateHandler() *CloseStateHandler {
 	return &CloseStateHandler{}
+}
+
+
+func (stateHandler *CloseStateHandler) Decorate(ctx *context.Context, stateContainer StateContainer) *CloseStateHandler {
+	stateHandler.slidingWindow.Clear()
+	stateHandler.DefaultStateHandler.Decorate(ctx, stateContainer)
+	return stateHandler
 }
 
 func (stateHandler *CloseStateHandler) acquirePermission() bool {
