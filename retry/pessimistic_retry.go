@@ -2,6 +2,7 @@ package retry
 
 import (
 	"resilix-go/context"
+	"resilix-go/util"
 	"sync/atomic"
 )
 
@@ -14,7 +15,6 @@ const (
 
 type PessimisticRetryManager struct {
 	OptimisticRetryManager
-
 	isAvailable Availability
 }
 
@@ -24,8 +24,10 @@ func NewPessimisticRetryManager() *PessimisticRetryManager {return &PessimisticR
 func (retryManager *PessimisticRetryManager) Decorate(ctx *context.Context) *PessimisticRetryManager {
 	retryManager.ctx = ctx
 	retryManager.config = ctx.Config
-
-	ctx.SWindow.AddObserver(retryManager)
+	retryManager.isAvailable = util.NewInt32(Available)
+	retryManager.OptimisticRetryManager.Decorate(ctx)
+	retryManager.ctx.SWindow.RemoveObserver(&retryManager.OptimisticRetryManager)
+	retryManager.ctx.SWindow.AddObserver(retryManager)
 	return retryManager
 }
 
@@ -38,6 +40,5 @@ func(retryManager *PessimisticRetryManager) AcquireAndUpdateRetryPermission() bo
 
 func (retryManager *PessimisticRetryManager) NotifyOnAckAttempt(success bool) {
 	retryManager.OptimisticRetryManager.NotifyOnAckAttempt(success)
-
 	atomic.SwapInt32(retryManager.isAvailable, Available)
 }

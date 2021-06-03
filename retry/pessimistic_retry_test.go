@@ -11,13 +11,14 @@ import (
 )
 
 
-func TestOptimisticRetryRejected(t *testing.T) {
+func TestPessimisticRetryRejected(t *testing.T){
+	t.Deadline()
 	//init
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 50
 	ctx.Config.ErrorThreshold = 0.3
 	ctx.Config.NumberOfRetryInHalfOpenState = 100
-	ctx.Config.RetryStrategy = consts.RETRY_OPTIMISTIC
+	ctx.Config.RetryStrategy = consts.RETRY_PESSIMISTIC
 	ctx.SWindow = slidingwindow.NewCountBasedSlidingWindow(ctx.Config)
 	var wg sync.WaitGroup
 	window := ctx.SWindow
@@ -30,44 +31,36 @@ func TestOptimisticRetryRejected(t *testing.T) {
 		}, &wg)
 	}
 	wg.Wait()
-	retryManager := NewOptimisticRetryManager().Decorate(ctx)
+	retryManager := NewPessimisticRetryManager().Decorate(ctx)
 
 	assert.Equal(t, consts.RETRY_ON_GOING, int(retryManager.GetRetryState()))
 	assert.Equal(t, float32(0), retryManager.GetErrorRate())
 
-	minFailAck := int((ctx.Config.ErrorThreshold * float32(ctx.Config.NumberOfRetryInHalfOpenState)) + 2)
-	maxSuccessAck := int(ctx.Config.NumberOfRetryInHalfOpenState) - minFailAck
+	retryCount := 0
 
-	for i:=0 ; i < maxSuccessAck; i++ {
-		wg.Add(1)
-		util.AsyncWgRunner(func() {
-			assert.Equal(t, true, retryManager.AcquireAndUpdateRetryPermission())
-			window.AckAttempt(true)
-		}, &wg)
+	for retryManager.GetErrorRate() < ctx.Config.ErrorThreshold {
+		if retryManager.AcquireAndUpdateRetryPermission() {
+			wg.Add(1)
+			util.AsyncWgRunner(func() {
+				retryManager.AcquireAndUpdateRetryPermission()
+				window.AckAttempt(util.RandBool())
+			}, &wg)
+			retryCount++
+		}
 	}
-
-	for i:=0 ; i < minFailAck; i++ {
-		wg.Add(1)
-		util.AsyncWgRunner(func() {
-			retryManager.AcquireAndUpdateRetryPermission()
-			window.AckAttempt(false)
-		}, &wg)
-	}
-
 	wg.Wait()
 
 	assert.True(t, retryManager.GetErrorRate() >= ctx.Config.ErrorThreshold)
-	assert.False(t, retryManager.AcquireAndUpdateRetryPermission())
-	assert.Equal(t, consts.RETRY_REJECTED, int(retryManager.GetRetryState()))
+	assert.True(t, int(ctx.Config.NumberOfRetryInHalfOpenState) > retryCount)
 }
 
-func TestOptimisticRetryAcceptedCase(t *testing.T) {
+func TestPessimisticRetryAcceptedCase(t *testing.T) {
 	//init
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 50
 	ctx.Config.ErrorThreshold = 0.8
 	ctx.Config.NumberOfRetryInHalfOpenState = 100
-	ctx.Config.RetryStrategy = consts.RETRY_OPTIMISTIC
+	ctx.Config.RetryStrategy = consts.RETRY_PESSIMISTIC
 	ctx.SWindow = slidingwindow.NewCountBasedSlidingWindow(ctx.Config)
 	var wg sync.WaitGroup
 	window := ctx.SWindow
@@ -80,32 +73,41 @@ func TestOptimisticRetryAcceptedCase(t *testing.T) {
 		}, &wg)
 	}
 	wg.Wait()
-	retryManager := NewOptimisticRetryManager().Decorate(ctx)
+	retryManager := NewPessimisticRetryManager().Decorate(ctx)
 
 	assert.Equal(t, consts.RETRY_ON_GOING, int(retryManager.GetRetryState()))
 	assert.Equal(t, float32(0), retryManager.GetErrorRate())
 
 	minSuccessAck := int(((1 - ctx.Config.ErrorThreshold) * float32(ctx.Config.NumberOfRetryInHalfOpenState)) + 2)
 
-	for i:=0 ; i < minSuccessAck; i++ {
-		assert.Equal(t, true, retryManager.AcquireAndUpdateRetryPermission())
-		wg.Add(1)
-		util.AsyncWgRunner(func() {
-			window.AckAttempt(true)
-		}, &wg)
+	for i:=0 ; i < minSuccessAck && (retryManager.GetErrorRate() < ctx.Config.ErrorThreshold); i++ {
+
+		if retryManager.AcquireAndUpdateRetryPermission() {
+			wg.Add(1)
+			util.AsyncWgRunner(func() {
+				window.AckAttempt(true)
+			}, &wg)
+
+		} else {
+			i--
+		}
+
 	}
 
 	for i:=0 ; i < int(ctx.Config.NumberOfRetryInHalfOpenState) - minSuccessAck; i++ {
-		assert.Equal(t, true, retryManager.AcquireAndUpdateRetryPermission())
-		wg.Add(1)
-		util.AsyncWgRunner(func() {
-			window.AckAttempt(false)
-		}, &wg)
+		if retryManager.AcquireAndUpdateRetryPermission() {
+			wg.Add(1)
+			util.AsyncWgRunner(func() {
+				window.AckAttempt(false)
+			}, &wg)
+
+		} else {
+			i--
+		}
 	}
 
 	wg.Wait()
 
-	assert.True(t,  retryManager.GetErrorRate() < ctx.Config.ErrorThreshold)
-	assert.False(t, retryManager.AcquireAndUpdateRetryPermission())
+	assert.False(t,  retryManager.AcquireAndUpdateRetryPermission())
 	assert.Equal(t, consts.RETRY_ACCEPTED, int(retryManager.GetRetryState()))
 }
