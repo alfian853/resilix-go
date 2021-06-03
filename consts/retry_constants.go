@@ -9,8 +9,8 @@ const (
 
 
 	// RetryState
-	ON_GOING = 0
-	REJECTED = 1
-	ACCEPTED = 2
+	RETRY_ON_GOING = 0
+	RETRY_REJECTED = 1
+	RETRY_ACCEPTED = 2
 )
 

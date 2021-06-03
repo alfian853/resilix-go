@@ -5,6 +5,7 @@ import (
 	"resilix-go/consts"
 	"resilix-go/context"
 	"resilix-go/slidingwindow"
+	"resilix-go/util"
 	"sync/atomic"
 )
 
@@ -23,7 +24,8 @@ func NewOptimisticRetryManager() *OptimisticRetryManager {return &OptimisticRetr
 func (retryManager *OptimisticRetryManager) Decorate(ctx *context.Context) *OptimisticRetryManager {
 	retryManager.ctx = ctx
 	retryManager.config = ctx.Config
-
+	retryManager.numberOfRetry = util.NewInt32(0)
+	retryManager.numberOfFail = util.NewInt32(0)
 	ctx.SWindow.AddObserver(retryManager)
 	return retryManager
 }
@@ -50,15 +52,15 @@ func (retryManager *OptimisticRetryManager) GetErrorRate() float32 {
 func (retryManager *OptimisticRetryManager) GetRetryState() consts.RetryState {
 	if retryManager.isErrorLimitExceeded() {
 		retryManager.ctx.SWindow.RemoveObserver(retryManager)
-		return consts.REJECTED
+		return consts.RETRY_REJECTED
 	}
 
 	if atomic.LoadInt32(retryManager.numberOfRetry) >= retryManager.config.NumberOfRetryInHalfOpenState {
 		retryManager.ctx.SWindow.RemoveObserver(retryManager)
-		return consts.ACCEPTED
+		return consts.RETRY_ACCEPTED
 	}
 
-	return consts.ON_GOING
+	return consts.RETRY_ON_GOING
 }
 
 func (retryManager *OptimisticRetryManager) NotifyOnAckAttempt(success bool) {

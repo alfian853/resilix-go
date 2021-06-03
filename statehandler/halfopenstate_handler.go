@@ -31,17 +31,17 @@ func (stateHandler *HalfOpenStateHandler) acquirePermission() bool {
 
 func (stateHandler *HalfOpenStateHandler) evaluateState() {
 	switch stateHandler.retryManager.GetRetryState() {
-	case consts.ACCEPTED:
+	case consts.RETRY_ACCEPTED:
 		newStateHandler := NewCloseStateHandler().Decorate(stateHandler.context, stateHandler.stateContainer)
 		stateHandler.stateContainer.setStateHandler(newStateHandler)
 		break
 
-	case consts.REJECTED:
+	case consts.RETRY_REJECTED:
 		newStateHandler := NewOpenStateHandler().Decorate(stateHandler.context, stateHandler.stateContainer)
 		stateHandler.stateContainer.setStateHandler(newStateHandler)
 		break
 
-	case consts.ON_GOING:
+	case consts.RETRY_ON_GOING:
 		// do nothing
 		break
 	}
