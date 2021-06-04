@@ -59,8 +59,8 @@ func (window *TimeBasedSlidingWindow) Clear() {
 	defer atomic.SwapInt32(window.lock, consts.SwLock_Available)
 
 	if atomic.SwapInt32(window.lock, consts.SwLock_ClearingAll) < consts.SwLock_ClearingAll {
-		window.successQue = &lane.Deque{}
-		window.failureQue = &lane.Deque{}
+		window.successQue = lane.NewDeque()
+		window.failureQue = lane.NewDeque()
 	}
 }
 

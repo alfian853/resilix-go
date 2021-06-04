@@ -54,7 +54,7 @@ func (swindow *CountBasedSlidingWindow) Clear() {
 	defer atomic.SwapInt32(swindow.lock, consts.SwLock_Available)
 
 	if atomic.SwapInt32(swindow.lock, consts.SwLock_ClearingAll) < consts.SwLock_ClearingAll {
-		swindow.windowQue = &lane.Deque{}
+		swindow.windowQue = lane.NewDeque()
 	}
 }
 

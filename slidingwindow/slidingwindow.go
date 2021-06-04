@@ -106,3 +106,10 @@ func (swindow *DefaultSlidingWindow) GetErrorRate() float32 {
 	return swindow.swindowExt.getErrorRateAfterMinCallSatisfied()
 }
 
+func (swindow *DefaultSlidingWindow) SetActive(active bool)  {
+	if active {
+		atomic.SwapInt32(swindow.isActive, Active)
+	} else {
+		atomic.SwapInt32(swindow.isActive, Inactive)
+	}
+}
