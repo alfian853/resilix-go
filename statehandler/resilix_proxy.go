@@ -1,8 +1,10 @@
 package statehandler
 
+import "resilix-go/util"
+
 type ResilixProxy struct {
-	CheckedExecutor
-	Executor
+	util.CheckedExecutor
+	util.Executor
 	StateContainer
 	stateHandler StateHandler
 }

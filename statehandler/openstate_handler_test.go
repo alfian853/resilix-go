@@ -5,7 +5,7 @@ import (
 	"resilix-go/consts"
 	"resilix-go/context"
 	"resilix-go/slidingwindow"
-	"resilix-go/util"
+	"resilix-go/testutil"
 	"testing"
 	"time"
 )
@@ -36,20 +36,20 @@ func TestOpenState_movingStateAfterWaitingDurationIsSatisfied(t *testing.T) {
 	assert.False(t, container.getStateHandler().AcquirePermission())
 	assert.Equal(t, stateHandler, container.getStateHandler())
 
-	executed, result, err := stateHandler.ExecuteCheckedSupplier(util.PanicCheckedSupplier("won't happen"))
+	executed, result, err := stateHandler.ExecuteCheckedSupplier(testutil.PanicCheckedSupplier("won't happen"))
 
 	assert.False(t, executed)
 	assert.Nil(t, result)
 	assert.Nil(t, err)
 
-	executed, err = stateHandler.ExecuteChecked(util.PanicCheckedRunnable("won't happen"))
+	executed, err = stateHandler.ExecuteChecked(testutil.PanicCheckedRunnable("won't happen"))
 
 	assert.False(t, executed)
 	assert.Nil(t, err)
 
 	time.Sleep(time.Duration(ctx.Config.WaitDurationInOpenState/2) * time.Millisecond)
 
-	assert.True(t, container.getStateHandler().AcquirePermission())
+	container.getStateHandler().EvaluateState()
 	assert.NotEqual(t, stateHandler, container.getStateHandler())
 
 	assert.IsType(t, &HalfOpenStateHandler{}, container.getStateHandler())
@@ -86,8 +86,6 @@ func TestOpenState_shouldNotAck(t *testing.T) {
 		ctx.SWindow.AckAttempt(false)
 	}
 
-	assert.False(t, stateHandler.AcquirePermission())
 	assert.Equal(t, stateHandler, container.getStateHandler())
-
 	assert.Equal(t, initialError, stateHandler.slidingWindow.GetErrorRate())
 }

@@ -5,6 +5,7 @@ import (
 	"resilix-go/consts"
 	"resilix-go/context"
 	"resilix-go/slidingwindow"
+	"resilix-go/testutil"
 	"resilix-go/util"
 	"sync"
 	"testing"
@@ -35,7 +36,7 @@ func TestHalfOpenState_retryAndSuccess(t *testing.T) {
 	for i:=0; i < shouldSuccessAttempt; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			executed,result,err := stateHandler.ExecuteCheckedSupplier(util.TrueCheckedSupplier())
+			executed,result,err := stateHandler.ExecuteCheckedSupplier(testutil.TrueCheckedSupplier())
 			assert.True(t, executed)
 			assert.True(t, result.(bool))
 			assert.Nil(t, err)
@@ -47,8 +48,8 @@ func TestHalfOpenState_retryAndSuccess(t *testing.T) {
 	for i:=0; i < maxAcceptableError; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			uniqueError := util.RandPanicMessage()
-			executed,err := stateHandler.ExecuteChecked(util.PanicCheckedRunnable(uniqueError))
+			uniqueError := testutil.RandPanicMessage()
+			executed,err := stateHandler.ExecuteChecked(testutil.PanicCheckedRunnable(uniqueError))
 			assert.True(t, executed)
 			assert.Contains(t, err.Error(), uniqueError)
 		}, &wg)
@@ -84,7 +85,7 @@ func TestHalfOpenState_retryAndFailed(t *testing.T) {
 	for i:=0; i < shouldSuccessAttempt; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			executed,result,err := stateHandler.ExecuteCheckedSupplier(util.TrueCheckedSupplier())
+			executed,result,err := stateHandler.ExecuteCheckedSupplier(testutil.TrueCheckedSupplier())
 			assert.True(t, executed)
 			assert.True(t, result.(bool))
 			assert.Nil(t, err)
@@ -97,16 +98,16 @@ func TestHalfOpenState_retryAndFailed(t *testing.T) {
 	for i:=0; i < minRequiredError; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			uniqueError := util.RandPanicMessage()
-			executed,err := stateHandler.ExecuteChecked(util.PanicCheckedRunnable(uniqueError))
+			uniqueError := testutil.RandPanicMessage()
+			executed,err := stateHandler.ExecuteChecked(testutil.PanicCheckedRunnable(uniqueError))
 			assert.True(t, executed)
 			assert.Contains(t, err.Error(), uniqueError)
 		}, &wg)
 
 	}
 	wg.Wait()
-	uniqueError := util.RandPanicMessage()
-	executed,err := stateHandler.ExecuteChecked(util.PanicCheckedRunnable(uniqueError))
+	uniqueError := testutil.RandPanicMessage()
+	executed,err := stateHandler.ExecuteChecked(testutil.PanicCheckedRunnable(uniqueError))
 	assert.False(t, executed)
 	assert.Nil(t, err)
 

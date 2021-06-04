@@ -2,10 +2,10 @@ package retry
 
 import (
 	"resilix-go/consts"
+	"resilix-go/util"
 )
 
-type RetryManager interface {
-	AcquireAndUpdateRetryPermission() bool
+type RetryExecutor interface {
+	util.CheckedExecutor
 	GetRetryState() consts.RetryState
-	GetErrorRate() float32
 }

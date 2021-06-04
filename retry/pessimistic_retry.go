@@ -13,32 +13,24 @@ const (
 	NotAvailable = 0
 )
 
-type PessimisticRetryManager struct {
-	OptimisticRetryManager
+type PessimisticRetryExecutor struct {
+	OptimisticRetryExecutor
 	isAvailable Availability
 }
 
 
-func NewPessimisticRetryManager() *PessimisticRetryManager {return &PessimisticRetryManager{}}
+func NewPessimisticRetryExecutor() *PessimisticRetryExecutor {return &PessimisticRetryExecutor{}}
 
-func (retryManager *PessimisticRetryManager) Decorate(ctx *context.Context) *PessimisticRetryManager {
-	retryManager.ctx = ctx
-	retryManager.config = ctx.Config
-	retryManager.isAvailable = util.NewInt32(Available)
-	retryManager.OptimisticRetryManager.Decorate(ctx)
-	retryManager.ctx.SWindow.RemoveObserver(&retryManager.OptimisticRetryManager)
-	retryManager.ctx.SWindow.AddObserver(retryManager)
-	return retryManager
+func (retryExecutor *PessimisticRetryExecutor) Decorate(ctx *context.Context) *PessimisticRetryExecutor {
+	retryExecutor.ctx = ctx
+	retryExecutor.config = ctx.Config
+	retryExecutor.isAvailable = util.NewInt32(Available)
+	retryExecutor.OptimisticRetryExecutor.Decorate(ctx)
+	return retryExecutor
 }
 
 
-func(retryManager *PessimisticRetryManager) AcquireAndUpdateRetryPermission() bool {
-	return atomic.SwapInt32(retryManager.isAvailable, NotAvailable) == Available &&
-		retryManager.OptimisticRetryManager.AcquireAndUpdateRetryPermission()
-}
-
-
-func (retryManager *PessimisticRetryManager) NotifyOnAckAttempt(success bool) {
-	retryManager.OptimisticRetryManager.NotifyOnAckAttempt(success)
-	atomic.SwapInt32(retryManager.isAvailable, Available)
+func(retryExecutor *PessimisticRetryExecutor) acquireAndUpdateRetryPermission() bool {
+	return atomic.SwapInt32(retryExecutor.isAvailable, NotAvailable) == Available &&
+		retryExecutor.OptimisticRetryExecutor.acquireAndUpdateRetryPermission()
 }

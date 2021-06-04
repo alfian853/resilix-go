@@ -3,6 +3,7 @@ package slidingwindow
 import (
 	"github.com/stretchr/testify/assert"
 	conf "resilix-go/config"
+	"resilix-go/testutil"
 	"resilix-go/util"
 	"sync"
 	"sync/atomic"
@@ -28,7 +29,7 @@ func TestCountBasedSwCompleteCase(t *testing.T){
 	for i := 0 ; i < 25; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			cwindow.AckAttempt(util.RandBool())
+			cwindow.AckAttempt(testutil.RandBool())
 		}, &wg)
 	}
 
@@ -36,7 +37,7 @@ func TestCountBasedSwCompleteCase(t *testing.T){
 	nFailure := 3
 
 	for nSuccess > 0 || nFailure > 0 {
-		if util.RandBool() || nFailure == 0 {
+		if testutil.RandBool() || nFailure == 0 {
 			nSuccess--
 			wg.Add(1)
 			util.AsyncWgRunner(func() {
@@ -78,7 +79,7 @@ func TestCountBasedSwObserver(t *testing.T){
 	for i := 0 ; i < 5; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			cwindow.AckAttempt(util.RandBool())
+			cwindow.AckAttempt(testutil.RandBool())
 		}, &wg)
 	}
 	wg.Wait()
@@ -87,7 +88,7 @@ func TestCountBasedSwObserver(t *testing.T){
 	for i := 0 ; i < 5; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			cwindow.AckAttempt(util.RandBool())
+			cwindow.AckAttempt(testutil.RandBool())
 		}, &wg)
 	}
 
@@ -97,7 +98,7 @@ func TestCountBasedSwObserver(t *testing.T){
 	for i := 0 ; i < 5; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			cwindow.AckAttempt(util.RandBool())
+			cwindow.AckAttempt(testutil.RandBool())
 		}, &wg)
 	}
 	wg.Wait()

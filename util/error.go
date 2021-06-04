@@ -2,25 +2,39 @@ package util
 
 import "fmt"
 
-type IntendedPanic struct {
+type UnhandledError struct {
 	error
-	Message string
+	Message interface{}
 }
 
-type PanicData struct {
-	fmt.Stringer
-	fmt.GoStringer
-	Message string
-}
+func (e *UnhandledError) Error() string {
 
-func (err *IntendedPanic) Error() string {
-	return err.Message
-}
+	preFormat := "ResilixExecutor encountered an unhandled error"
 
-func (data *PanicData) String() string {
-	return data.Message
-}
+	switch e.Message.(type) {
+	case error:
+		return fmt.Sprintf(preFormat + ": %s\n", e.Message.(error).Error())
+	case string:
+		return fmt.Sprintf(preFormat + ": %s\n", e.Message.(string))
+	}
 
-func (data *PanicData) GoString() string {
-	return data.Message
+	var args []interface{}
+	canBeString := false
+	if _,ok := e.Message.(fmt.Stringer); ok {
+		canBeString = true
+		preFormat += ", String(): %s"
+		args = append(args, e.Message.(fmt.Stringer).String())
+	}
+
+	if _,ok := e.Message.(fmt.GoStringer); ok {
+		canBeString = true
+		preFormat += ", GoString(): %s"
+		args = append(args, e.Message.(fmt.Stringer).String())
+	}
+
+	if canBeString {
+		return fmt.Sprintf(preFormat + "\n", args)
+	}
+
+	return fmt.Sprintf(preFormat + ", %%#v: %#v\n", e.Message)
 }

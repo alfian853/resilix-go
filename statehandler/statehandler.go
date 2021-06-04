@@ -1,56 +1,14 @@
 package statehandler
 
 import (
-	"fmt"
 	conf "resilix-go/config"
 	"resilix-go/context"
 	"resilix-go/slidingwindow"
+	"resilix-go/util"
 )
 
-type CheckedExecutor interface {
-	ExecuteChecked(fun func() error) (bool, error)
-	ExecuteCheckedSupplier(fun func()(interface{}, error)) (bool, interface{}, error)
-}
-
-type UnhandledError struct {
-	error
-	message interface{}
-}
-
-func (e *UnhandledError) Error() string {
-
-	preFormat := "ResilixExecutor encountered an unhandled error"
-
-	switch e.message.(type) {
-	case error:
-		return fmt.Sprintf(preFormat + ": %s\n", e.message.(error).Error())
-	case string:
-		return fmt.Sprintf(preFormat + ": %s\n", e.message.(string))
-	}
-
-	var args []interface{}
-	canBeString := false
-	if _,ok := e.message.(fmt.Stringer); ok {
-		canBeString = true
-		preFormat += ", String(): %s"
-		args = append(args, e.message.(fmt.Stringer).String())
-	}
-
-	if _,ok := e.message.(fmt.GoStringer); ok {
-		canBeString = true
-		preFormat += ", GoString(): %s"
-		args = append(args, e.message.(fmt.Stringer).String())
-	}
-
-	if canBeString {
-		return fmt.Sprintf(preFormat + "\n", args)
-	}
-
-	return fmt.Sprintf(preFormat + ", %%#v: %#v\n", e.message)
-}
-
 type StateHandler interface {
-	CheckedExecutor
+	util.CheckedExecutor
 	EvaluateState()
 	AcquirePermission() bool
 }
@@ -60,7 +18,7 @@ type DefaultStateHandlerExt interface {
 }
 
 type DefaultStateHandler struct {
-	CheckedExecutor
+	util.CheckedExecutor
 	stateHandler StateHandler
 	stateContainer StateContainer
 	stateHandlerExt DefaultStateHandlerExt
@@ -92,7 +50,7 @@ func (defHandler *DefaultStateHandler) ExecuteChecked(fun func() error) (execute
 	}()
 	defer func() {
 		if message := recover(); message != nil {
-			err = &UnhandledError{message: message}
+			err = &util.UnhandledError{Message: message}
 		}
 	}()
 
@@ -114,12 +72,11 @@ func (defHandler *DefaultStateHandler) ExecuteCheckedSupplier(fun func()(interfa
 	}()
 	defer func() {
 		if message := recover(); message != nil {
-			err = &UnhandledError{message: message}
+			err = &util.UnhandledError{Message: message}
 		}
 	}()
 
 	if !defHandler.stateHandler.AcquirePermission() {
-		//fmt.Println(defHandler.context.SWindow.GetErrorRate())
 		return false, nil, nil
 	}
 

@@ -4,15 +4,13 @@ import (
 	conf "resilix-go/config"
 	"resilix-go/consts"
 	"resilix-go/context"
-	"resilix-go/slidingwindow"
 	"resilix-go/util"
 	"sync"
 	"sync/atomic"
 )
 
-type OptimisticRetryManager struct {
-	RetryManager
-	slidingwindow.SwObserver
+type OptimisticRetryExecutor struct {
+	RetryExecutor
 	writeNORLock sync.Mutex
 	numberOfRetry *int32
 	numberOfAck   *int32
@@ -21,62 +19,106 @@ type OptimisticRetryManager struct {
 	config        *conf.Configuration
 }
 
-func NewOptimisticRetryManager() *OptimisticRetryManager {return &OptimisticRetryManager{}}
+func NewOptimisticRetryExecutor() *OptimisticRetryExecutor {return &OptimisticRetryExecutor{}}
 
-func (retryManager *OptimisticRetryManager) Decorate(ctx *context.Context) *OptimisticRetryManager {
-	retryManager.ctx = ctx
-	retryManager.config = ctx.Config
-	retryManager.numberOfRetry = util.NewInt32(0)
-	retryManager.numberOfFail = util.NewInt32(0)
-	retryManager.numberOfAck = util.NewInt32(0)
-	ctx.SWindow.AddObserver(retryManager)
-	return retryManager
+func (retryExecutor *OptimisticRetryExecutor) Decorate(ctx *context.Context) *OptimisticRetryExecutor {
+	retryExecutor.ctx = ctx
+	retryExecutor.config = ctx.Config
+	retryExecutor.numberOfRetry = util.NewInt32(0)
+	retryExecutor.numberOfFail = util.NewInt32(0)
+	retryExecutor.numberOfAck = util.NewInt32(0)
+	return retryExecutor
 }
 
-func (retryManager *OptimisticRetryManager) AcquireAndUpdateRetryPermission() bool {
-	defer retryManager.writeNORLock.Unlock()
-	retryManager.writeNORLock.Lock()
 
-	allowed := !retryManager.isErrorLimitExceeded() &&
-		atomic.LoadInt32(retryManager.numberOfRetry) < retryManager.config.NumberOfRetryInHalfOpenState
+func (retryExecutor *OptimisticRetryExecutor) ExecuteChecked(fun func() error) (executed bool, err error) {
+	defer func() {
+		if executed {
+			atomic.AddInt32(retryExecutor.numberOfAck, 1)
+			if err != nil {
+				atomic.AddInt32(retryExecutor.numberOfFail, 1)
+			}
+		}
+	}()
+	defer func() {
+		if message := recover(); message != nil {
+			err = &util.UnhandledError{Message: message}
+		}
+	}()
 
-	if allowed {
-		atomic.AddInt32(retryManager.numberOfRetry, 1)
+	if !retryExecutor.acquireAndUpdateRetryPermission() {
+		return false, nil
+	}
+	executed = true
+	err = fun()
+
+	return true, err
+}
+
+func (retryExecutor *OptimisticRetryExecutor) ExecuteCheckedSupplier(fun func()(interface{}, error)) (
+	executed bool, result interface{}, err error) {
+	defer func() {
+		if executed {
+			atomic.AddInt32(retryExecutor.numberOfAck, 1)
+			if err != nil {
+				atomic.AddInt32(retryExecutor.numberOfFail, 1)
+			}
+		}
+	}()
+	defer func() {
+		if message := recover(); message != nil {
+			err = &util.UnhandledError{Message: message}
+		}
+	}()
+
+	if !retryExecutor.acquireAndUpdateRetryPermission() {
+		return false, nil, nil
 	}
 
-	return allowed
+	executed = true
+	result, err = fun()
+
+	return true, result, err
 }
 
-func (retryManager *OptimisticRetryManager) GetErrorRate() float32 {
-	if atomic.LoadInt32(retryManager.numberOfFail) == 0 {
-		return 0
-	}
-
-	return float32(atomic.LoadInt32(retryManager.numberOfFail)) / float32(atomic.LoadInt32(retryManager.numberOfRetry))
-}
-
-func (retryManager *OptimisticRetryManager) GetRetryState() consts.RetryState {
-	if retryManager.isErrorLimitExceeded() {
-		retryManager.ctx.SWindow.RemoveObserver(retryManager)
+func (retryExecutor *OptimisticRetryExecutor) GetRetryState() consts.RetryState {
+	if retryExecutor.isErrorLimitExceeded() {
 		return consts.RETRY_REJECTED
 	}
 
-	if atomic.LoadInt32(retryManager.numberOfRetry) >= retryManager.config.NumberOfRetryInHalfOpenState &&
-		atomic.LoadInt32(retryManager.numberOfAck) == atomic.LoadInt32(retryManager.numberOfRetry) {
-		retryManager.ctx.SWindow.RemoveObserver(retryManager)
+	if atomic.LoadInt32(retryExecutor.numberOfRetry) >= retryExecutor.config.NumberOfRetryInHalfOpenState &&
+		atomic.LoadInt32(retryExecutor.numberOfAck) == retryExecutor.config.NumberOfRetryInHalfOpenState {
 		return consts.RETRY_ACCEPTED
 	}
 
 	return consts.RETRY_ON_GOING
 }
 
-func (retryManager *OptimisticRetryManager) NotifyOnAckAttempt(success bool) {
-	atomic.AddInt32(retryManager.numberOfAck, 1)
-	if !success {
-		atomic.AddInt32(retryManager.numberOfFail, 1)
+/*
+unsafe to be exposed to the public due to no execution guarantee after this method call
+*/
+func (retryExecutor *OptimisticRetryExecutor) acquireAndUpdateRetryPermission() bool {
+
+	numberOfRetry := atomic.AddInt32(retryExecutor.numberOfRetry, 1) - 1
+
+	if numberOfRetry >= retryExecutor.config.NumberOfRetryInHalfOpenState {
+		return false
+	} else if retryExecutor.isErrorLimitExceeded() {
+		return false
 	}
+
+	return true
 }
 
-func (retryManager *OptimisticRetryManager) isErrorLimitExceeded() bool {
-	return retryManager.GetErrorRate() >= retryManager.config.ErrorThreshold
+func (retryExecutor *OptimisticRetryExecutor) isErrorLimitExceeded() bool {
+	return retryExecutor.getErrorRate() >= retryExecutor.config.ErrorThreshold
+}
+
+
+func (retryExecutor *OptimisticRetryExecutor) getErrorRate() float32 {
+	if atomic.LoadInt32(retryExecutor.numberOfFail) == 0 {
+		return 0
+	}
+
+	return float32(atomic.LoadInt32(retryExecutor.numberOfFail)) / float32(atomic.LoadInt32(retryExecutor.numberOfAck))
 }

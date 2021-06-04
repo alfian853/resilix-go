@@ -2,14 +2,34 @@ package retry
 
 import (
 	"github.com/stretchr/testify/assert"
+	"math"
 	"resilix-go/consts"
 	"resilix-go/context"
-	"resilix-go/slidingwindow"
+	"resilix-go/testutil"
 	"resilix-go/util"
 	"sync"
 	"testing"
 )
 
+func tryHardSuccess(t *testing.T, retryExecutor RetryExecutor) {
+	executed, err := retryExecutor.ExecuteChecked(testutil.CheckedRunnable())
+	if !executed {
+		tryHardSuccess(t, retryExecutor)
+	}
+	assert.True(t, executed)
+	assert.Nil(t, err)
+}
+
+func tryHardFailed(t *testing.T, retryExecutor RetryExecutor) {
+	randErrorMessage := testutil.RandPanicMessage()
+	executed, result, err := retryExecutor.ExecuteCheckedSupplier(testutil.PanicCheckedSupplier(randErrorMessage))
+	if !executed {
+		tryHardFailed(t, retryExecutor)
+	}
+	assert.True(t, executed)
+	assert.Nil(t, result)
+	assert.Contains(t, err.Error(), randErrorMessage)
+}
 
 func TestPessimisticRetryRejected(t *testing.T){
 	t.Deadline()
@@ -19,39 +39,35 @@ func TestPessimisticRetryRejected(t *testing.T){
 	ctx.Config.ErrorThreshold = 0.3
 	ctx.Config.NumberOfRetryInHalfOpenState = 100
 	ctx.Config.RetryStrategy = consts.RETRY_PESSIMISTIC
-	ctx.SWindow = slidingwindow.NewCountBasedSlidingWindow(ctx.Config)
 	var wg sync.WaitGroup
-	window := ctx.SWindow
 
-	// start
-	for i:=0 ; i < ctx.Config.SlidingWindowMaxSize; i++ {
+	retryExecutor := NewPessimisticRetryExecutor().Decorate(ctx)
+
+	assert.Equal(t, consts.RETRY_ON_GOING, int(retryExecutor.GetRetryState()))
+	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
+
+	minFailAck := int(ctx.Config.ErrorThreshold * float32(ctx.Config.NumberOfRetryInHalfOpenState))
+	maxSuccessAck := int(ctx.Config.NumberOfRetryInHalfOpenState) - minFailAck
+
+	for i:=0 ; i < maxSuccessAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			window.AckAttempt(util.RandBool())
+			tryHardSuccess(t, retryExecutor)
 		}, &wg)
 	}
 	wg.Wait()
-	retryManager := NewPessimisticRetryManager().Decorate(ctx)
 
-	assert.Equal(t, consts.RETRY_ON_GOING, int(retryManager.GetRetryState()))
-	assert.Equal(t, float32(0), retryManager.GetErrorRate())
-
-	retryCount := 0
-
-	for retryManager.GetErrorRate() < ctx.Config.ErrorThreshold {
-		if retryManager.AcquireAndUpdateRetryPermission() {
-			wg.Add(1)
-			util.AsyncWgRunner(func() {
-				retryManager.AcquireAndUpdateRetryPermission()
-				window.AckAttempt(util.RandBool())
-			}, &wg)
-			retryCount++
-		}
+	for i:=0 ; i < minFailAck; i++ {
+		wg.Add(1)
+		util.AsyncWgRunner(func() {
+			tryHardFailed(t, retryExecutor)
+		}, &wg)
 	}
 	wg.Wait()
-
-	assert.True(t, retryManager.GetErrorRate() >= ctx.Config.ErrorThreshold)
-	assert.True(t, int(ctx.Config.NumberOfRetryInHalfOpenState) > retryCount)
+	assert.True(t, retryExecutor.getErrorRate() >= ctx.Config.ErrorThreshold)
+	assert.False(t, retryExecutor.acquireAndUpdateRetryPermission())
+	assert.Equal(t, consts.RETRY_REJECTED, int(retryExecutor.GetRetryState()))
+	assert.Equal(t, ctx.Config.NumberOfRetryInHalfOpenState, *retryExecutor.numberOfAck)
 }
 
 func TestPessimisticRetryAcceptedCase(t *testing.T) {
@@ -61,53 +77,33 @@ func TestPessimisticRetryAcceptedCase(t *testing.T) {
 	ctx.Config.ErrorThreshold = 0.8
 	ctx.Config.NumberOfRetryInHalfOpenState = 100
 	ctx.Config.RetryStrategy = consts.RETRY_PESSIMISTIC
-	ctx.SWindow = slidingwindow.NewCountBasedSlidingWindow(ctx.Config)
 	var wg sync.WaitGroup
-	window := ctx.SWindow
 
-	// start
-	for i:=0 ; i < ctx.Config.SlidingWindowMaxSize; i++ {
+	retryExecutor := NewPessimisticRetryExecutor().Decorate(ctx)
+
+	assert.Equal(t, consts.RETRY_ON_GOING, int(retryExecutor.GetRetryState()))
+	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
+
+
+	minSuccessAck := int(math.Ceil(float64((1 - ctx.Config.ErrorThreshold) * float32(ctx.Config.NumberOfRetryInHalfOpenState))) + 1)
+
+	for i:=0 ; i < minSuccessAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			window.AckAttempt(util.RandBool())
+			tryHardSuccess(t, retryExecutor)
 		}, &wg)
 	}
 	wg.Wait()
-	retryManager := NewPessimisticRetryManager().Decorate(ctx)
-
-	assert.Equal(t, consts.RETRY_ON_GOING, int(retryManager.GetRetryState()))
-	assert.Equal(t, float32(0), retryManager.GetErrorRate())
-
-	minSuccessAck := int(((1 - ctx.Config.ErrorThreshold) * float32(ctx.Config.NumberOfRetryInHalfOpenState)) + 2)
-
-	for i:=0 ; i < minSuccessAck && (retryManager.GetErrorRate() < ctx.Config.ErrorThreshold); i++ {
-
-		if retryManager.AcquireAndUpdateRetryPermission() {
-			wg.Add(1)
-			util.AsyncWgRunner(func() {
-				window.AckAttempt(true)
-			}, &wg)
-
-		} else {
-			i--
-		}
-
-	}
-
 	for i:=0 ; i < int(ctx.Config.NumberOfRetryInHalfOpenState) - minSuccessAck; i++ {
-		if retryManager.AcquireAndUpdateRetryPermission() {
-			wg.Add(1)
-			util.AsyncWgRunner(func() {
-				window.AckAttempt(false)
-			}, &wg)
-
-		} else {
-			i--
-		}
+		wg.Add(1)
+		util.AsyncWgRunner(func() {
+			tryHardFailed(t, retryExecutor)
+		}, &wg)
 	}
 
 	wg.Wait()
 
-	assert.False(t,  retryManager.AcquireAndUpdateRetryPermission())
-	assert.Equal(t, consts.RETRY_ACCEPTED, int(retryManager.GetRetryState()))
+	assert.True(t,  retryExecutor.getErrorRate() < ctx.Config.ErrorThreshold)
+	assert.False(t,  retryExecutor.acquireAndUpdateRetryPermission())
+	assert.Equal(t, consts.RETRY_ACCEPTED, int(retryExecutor.GetRetryState()))
 }
