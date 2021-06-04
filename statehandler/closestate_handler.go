@@ -4,6 +4,7 @@ import "resilix-go/context"
 
 type CloseStateHandler struct {
 	DefaultStateHandler
+	DefaultStateHandlerExt
 }
 
 func NewCloseStateHandler() *CloseStateHandler {
@@ -12,18 +13,22 @@ func NewCloseStateHandler() *CloseStateHandler {
 
 
 func (stateHandler *CloseStateHandler) Decorate(ctx *context.Context, stateContainer StateContainer) *CloseStateHandler {
+	stateHandler.DefaultStateHandler.Decorate(ctx, stateHandler, stateHandler, stateContainer)
 	stateHandler.slidingWindow.Clear()
-	stateHandler.DefaultStateHandler.Decorate(ctx, stateContainer)
 	return stateHandler
 }
 
-func (stateHandler *CloseStateHandler) acquirePermission() bool {
+func (stateHandler *CloseStateHandler) isSlidingWindowEnabled() bool {
+	return true
+}
+
+func (stateHandler *CloseStateHandler) AcquirePermission() bool {
 	return stateHandler.slidingWindow.GetErrorRate() <= stateHandler.configuration.ErrorThreshold
 }
 
-func (stateHandler *CloseStateHandler) evaluateState() {
+func (stateHandler *CloseStateHandler) EvaluateState() {
 
-	if !stateHandler.acquirePermission() {
+	if !stateHandler.AcquirePermission() {
 		newHandler := NewOpenStateHandler().Decorate(stateHandler.context, stateHandler.stateContainer)
 		stateHandler.stateContainer.setStateHandler(newHandler)
 	}

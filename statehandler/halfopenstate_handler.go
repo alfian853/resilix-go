@@ -9,6 +9,7 @@ import (
 
 type HalfOpenStateHandler struct {
 	DefaultStateHandler
+	DefaultStateHandlerExt
 	timeEnd int64
 	retryManager retry.RetryManager
 }
@@ -18,18 +19,22 @@ func NewHalfOpenStateHandler() *HalfOpenStateHandler {
 }
 
 func (stateHandler *HalfOpenStateHandler) Decorate(ctx *context.Context, stateContainer StateContainer) *HalfOpenStateHandler {
-	stateHandler.DefaultStateHandler.Decorate(ctx, stateContainer)
+	stateHandler.DefaultStateHandler.Decorate(ctx, stateHandler, stateHandler, stateContainer)
 	stateHandler.timeEnd = util.GetTimestamp() + stateHandler.configuration.WaitDurationInOpenState
 
 	stateHandler.retryManager = retry.CreateRetryManager(ctx)
 	return stateHandler
 }
 
-func (stateHandler *HalfOpenStateHandler) acquirePermission() bool {
+func (stateHandler *HalfOpenStateHandler) isSlidingWindowEnabled() bool {
+	return false
+}
+
+func (stateHandler *HalfOpenStateHandler) AcquirePermission() bool {
 	return stateHandler.retryManager.AcquireAndUpdateRetryPermission()
 }
 
-func (stateHandler *HalfOpenStateHandler) evaluateState() {
+func (stateHandler *HalfOpenStateHandler) EvaluateState() {
 	switch stateHandler.retryManager.GetRetryState() {
 	case consts.RETRY_ACCEPTED:
 		newStateHandler := NewCloseStateHandler().Decorate(stateHandler.context, stateHandler.stateContainer)

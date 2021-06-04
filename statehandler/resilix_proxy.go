@@ -1,7 +1,7 @@
 package statehandler
 
 type ResilixProxy struct {
-	PanicExecutor
+	CheckedExecutor
 	Executor
 	StateContainer
 	stateHandler StateHandler
@@ -16,27 +16,26 @@ func (proxy *ResilixProxy) getStateHandler() StateHandler  {
 	return proxy.stateHandler
 }
 
+// CheckedExecutor
+func (proxy *ResilixProxy) ExecuteChecked(fun func() error) (bool, error) {
+	proxy.stateHandler.EvaluateState()
 
-// PanicExecutor
-func (proxy *ResilixProxy) PanicExecute(fun func() error) (bool, error) {
-	proxy.stateHandler.evaluateState()
-
-	return proxy.stateHandler.PanicExecute(fun)
+	return proxy.stateHandler.ExecuteChecked(fun)
 }
 
 
-func (proxy *ResilixProxy) PanicExecuteWithReturn(fun func()(interface{}, error)) (bool, interface{}, error) {
-	proxy.stateHandler.evaluateState()
+func (proxy *ResilixProxy) ExecuteCheckedSupplier(fun func()(interface{}, error)) (bool, interface{}, error) {
+	proxy.stateHandler.EvaluateState()
 
-	return proxy.stateHandler.PanicExecuteWithReturn(fun)
+	return proxy.stateHandler.ExecuteCheckedSupplier(fun)
 }
 
 
 // Executor
 func (proxy *ResilixProxy) Execute(fun func()) bool {
-	proxy.stateHandler.evaluateState()
+	proxy.stateHandler.EvaluateState()
 
-	isExecuted, err := proxy.PanicExecute(func() (err error) {
+	isExecuted, err := proxy.ExecuteChecked(func() (err error) {
 		fun()
 		return nil
 	})
@@ -47,10 +46,10 @@ func (proxy *ResilixProxy) Execute(fun func()) bool {
 	return isExecuted
 }
 
-func (proxy *ResilixProxy) ExecuteWithReturn(fun func() interface{}) (bool, interface{})  {
-	proxy.stateHandler.evaluateState()
+func (proxy *ResilixProxy) ExecuteSupplier(fun func() interface{}) (bool, interface{})  {
+	proxy.stateHandler.EvaluateState()
 
-	isExecuted, result, err := proxy.PanicExecuteWithReturn(func() (interface{},error) {
+	isExecuted, result, err := proxy.ExecuteCheckedSupplier(func() (interface{},error) {
 		return fun(), nil
 	})
 
