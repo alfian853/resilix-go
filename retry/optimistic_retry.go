@@ -6,14 +6,16 @@ import (
 	"resilix-go/context"
 	"resilix-go/slidingwindow"
 	"resilix-go/util"
+	"sync"
 	"sync/atomic"
 )
 
 type OptimisticRetryManager struct {
 	RetryManager
 	slidingwindow.SwObserver
-
+	writeNORLock sync.Mutex
 	numberOfRetry *int32
+	numberOfAck   *int32
 	numberOfFail  *int32
 	ctx           *context.Context
 	config        *conf.Configuration
@@ -26,27 +28,31 @@ func (retryManager *OptimisticRetryManager) Decorate(ctx *context.Context) *Opti
 	retryManager.config = ctx.Config
 	retryManager.numberOfRetry = util.NewInt32(0)
 	retryManager.numberOfFail = util.NewInt32(0)
+	retryManager.numberOfAck = util.NewInt32(0)
 	ctx.SWindow.AddObserver(retryManager)
 	return retryManager
 }
 
 func (retryManager *OptimisticRetryManager) AcquireAndUpdateRetryPermission() bool {
+	defer retryManager.writeNORLock.Unlock()
+	retryManager.writeNORLock.Lock()
 
-	numberOfRetry := atomic.AddInt32(retryManager.numberOfRetry,1) - 1
+	allowed := !retryManager.isErrorLimitExceeded() &&
+		atomic.LoadInt32(retryManager.numberOfRetry) < retryManager.config.NumberOfRetryInHalfOpenState
 
-	if numberOfRetry >= retryManager.config.NumberOfRetryInHalfOpenState {
-		return false
+	if allowed {
+		atomic.AddInt32(retryManager.numberOfRetry, 1)
 	}
 
-	return !retryManager.isErrorLimitExceeded()
+	return allowed
 }
 
 func (retryManager *OptimisticRetryManager) GetErrorRate() float32 {
-	if *retryManager.numberOfFail == 0 {
+	if atomic.LoadInt32(retryManager.numberOfFail) == 0 {
 		return 0
 	}
 
-	return float32(*retryManager.numberOfFail) / float32(*retryManager.numberOfRetry)
+	return float32(atomic.LoadInt32(retryManager.numberOfFail)) / float32(atomic.LoadInt32(retryManager.numberOfRetry))
 }
 
 func (retryManager *OptimisticRetryManager) GetRetryState() consts.RetryState {
@@ -55,7 +61,8 @@ func (retryManager *OptimisticRetryManager) GetRetryState() consts.RetryState {
 		return consts.RETRY_REJECTED
 	}
 
-	if atomic.LoadInt32(retryManager.numberOfRetry) >= retryManager.config.NumberOfRetryInHalfOpenState {
+	if atomic.LoadInt32(retryManager.numberOfRetry) >= retryManager.config.NumberOfRetryInHalfOpenState &&
+		atomic.LoadInt32(retryManager.numberOfAck) == atomic.LoadInt32(retryManager.numberOfRetry) {
 		retryManager.ctx.SWindow.RemoveObserver(retryManager)
 		return consts.RETRY_ACCEPTED
 	}
@@ -64,6 +71,7 @@ func (retryManager *OptimisticRetryManager) GetRetryState() consts.RetryState {
 }
 
 func (retryManager *OptimisticRetryManager) NotifyOnAckAttempt(success bool) {
+	atomic.AddInt32(retryManager.numberOfAck, 1)
 	if !success {
 		atomic.AddInt32(retryManager.numberOfFail, 1)
 	}

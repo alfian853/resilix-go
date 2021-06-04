@@ -27,7 +27,7 @@ func (stateHandler *HalfOpenStateHandler) Decorate(ctx *context.Context, stateCo
 }
 
 func (stateHandler *HalfOpenStateHandler) isSlidingWindowEnabled() bool {
-	return false
+	return true
 }
 
 func (stateHandler *HalfOpenStateHandler) AcquirePermission() bool {

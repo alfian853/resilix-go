@@ -27,6 +27,11 @@ func (stateHandler *OpenStateHandler) isSlidingWindowEnabled() bool {
 }
 
 func (stateHandler *OpenStateHandler) AcquirePermission() bool {
+	stateHandler.EvaluateState()
+
+	if stateHandler.stateContainer.getStateHandler() != stateHandler {
+		return stateHandler.stateContainer.getStateHandler().AcquirePermission()
+	}
 	return false
 }
 

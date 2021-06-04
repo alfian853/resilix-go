@@ -33,6 +33,11 @@ func ErrorCheckedSupplier(err error) func() (interface{},error) {
 		return nil, err
 	}
 }
+func TrueCheckedSupplier() func() (interface{}, error) {
+	return func() (interface{},error) {
+		return true,nil
+	}
+}
 
 func TrueSupplier() func() bool {
 	return func() bool {
