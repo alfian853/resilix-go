@@ -27,7 +27,7 @@ func (stateHandler *OpenStateHandler) isSlidingWindowEnabled() bool {
 }
 
 func (stateHandler *OpenStateHandler) AcquirePermission() bool {
-	return stateHandler.slidingWindow.GetErrorRate() <= stateHandler.configuration.ErrorThreshold
+	return false
 }
 
 func (stateHandler *OpenStateHandler) EvaluateState() {
