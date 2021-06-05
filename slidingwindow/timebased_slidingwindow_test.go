@@ -32,7 +32,8 @@ func TestCompleteCase(t *testing.T){
 			twindow.AckAttempt(testutil.RandBool())
 		}, &wg)
 	}
-	time.Sleep(windowTimeRange * time.Millisecond)
+	wg.Wait()
+	time.Sleep((windowTimeRange+100) * time.Millisecond)
 
 	nSuccess := 7
 	nFailure := 3
