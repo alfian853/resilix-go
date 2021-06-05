@@ -1,4 +1,4 @@
-module resilix-go
+module github.com/alfian853/resilix-go
 
 go 1.15
 
