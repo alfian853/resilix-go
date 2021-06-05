@@ -18,19 +18,19 @@ type PessimisticRetryExecutor struct {
 	isAvailable Availability
 }
 
-
-func NewPessimisticRetryExecutor() *PessimisticRetryExecutor {return &PessimisticRetryExecutor{}}
-
-func (retryExecutor *PessimisticRetryExecutor) Decorate(ctx *context.Context) *PessimisticRetryExecutor {
-	retryExecutor.ctx = ctx
-	retryExecutor.config = ctx.Config
-	retryExecutor.isAvailable = util.NewInt32(Available)
-	retryExecutor.OptimisticRetryExecutor.Decorate(ctx)
-	return retryExecutor
+func (retry *PessimisticRetryExecutor) Decorate(ctx *context.Context) *PessimisticRetryExecutor {
+	retry.ctx = ctx
+	retry.config = ctx.Config
+	retry.isAvailable = util.NewInt32(Available)
+	retry.OptimisticRetryExecutor.DecorateWithSource(ctx, retry)
+	return retry
 }
 
+func(retry *PessimisticRetryExecutor) acquireAndUpdateRetryPermission() bool {
+	return atomic.SwapInt32(retry.isAvailable, NotAvailable) == Available &&
+		retry.OptimisticRetryExecutor.acquireAndUpdateRetryPermission()
+}
 
-func(retryExecutor *PessimisticRetryExecutor) acquireAndUpdateRetryPermission() bool {
-	return atomic.SwapInt32(retryExecutor.isAvailable, NotAvailable) == Available &&
-		retryExecutor.OptimisticRetryExecutor.acquireAndUpdateRetryPermission()
+func (retry *PessimisticRetryExecutor) onAfterExecution() {
+	atomic.SwapInt32(retry.isAvailable, Available)
 }

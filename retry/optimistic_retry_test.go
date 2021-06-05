@@ -21,7 +21,7 @@ func TestOptimisticRetryRejected(t *testing.T) {
 	ctx.Config.RetryStrategy = consts.RETRY_OPTIMISTIC
 	var wg sync.WaitGroup
 
-	retryExecutor := NewOptimisticRetryExecutor().Decorate(ctx)
+	retryExecutor := new(OptimisticRetryExecutor).Decorate(ctx)
 
 	assert.Equal(t, consts.RETRY_ON_GOING, int(retryExecutor.GetRetryState()))
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
@@ -65,7 +65,7 @@ func TestOptimisticRetryAcceptedCase(t *testing.T) {
 	ctx.Config.RetryStrategy = consts.RETRY_OPTIMISTIC
 	var wg sync.WaitGroup
 
-	retryExecutor := NewOptimisticRetryExecutor().Decorate(ctx)
+	retryExecutor := new(OptimisticRetryExecutor).Decorate(ctx)
 
 	assert.Equal(t, consts.RETRY_ON_GOING, int(retryExecutor.GetRetryState()))
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())

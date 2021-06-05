@@ -1,12 +1,12 @@
 package retry
 
 import (
-	"github.com/stretchr/testify/assert"
-	"math"
 	"github.com/alfian853/resilix-go/consts"
 	"github.com/alfian853/resilix-go/context"
 	"github.com/alfian853/resilix-go/testutil"
 	"github.com/alfian853/resilix-go/util"
+	"github.com/stretchr/testify/assert"
+	"math"
 	"sync"
 	"testing"
 )
@@ -15,6 +15,7 @@ func tryHardSuccess(t *testing.T, retryExecutor RetryExecutor) {
 	executed, err := retryExecutor.ExecuteChecked(testutil.CheckedRunnable())
 	if !executed {
 		tryHardSuccess(t, retryExecutor)
+		return
 	}
 	assert.True(t, executed)
 	assert.Nil(t, err)
@@ -25,6 +26,7 @@ func tryHardFailed(t *testing.T, retryExecutor RetryExecutor) {
 	executed, result, err := retryExecutor.ExecuteCheckedSupplier(testutil.PanicCheckedSupplier(randErrorMessage))
 	if !executed {
 		tryHardFailed(t, retryExecutor)
+		return
 	}
 	assert.True(t, executed)
 	assert.Nil(t, result)
@@ -41,7 +43,7 @@ func TestPessimisticRetryRejected(t *testing.T){
 	ctx.Config.RetryStrategy = consts.RETRY_PESSIMISTIC
 	var wg sync.WaitGroup
 
-	retryExecutor := NewPessimisticRetryExecutor().Decorate(ctx)
+	retryExecutor := new(PessimisticRetryExecutor).Decorate(ctx)
 
 	assert.Equal(t, consts.RETRY_ON_GOING, int(retryExecutor.GetRetryState()))
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
@@ -79,7 +81,7 @@ func TestPessimisticRetryAcceptedCase(t *testing.T) {
 	ctx.Config.RetryStrategy = consts.RETRY_PESSIMISTIC
 	var wg sync.WaitGroup
 
-	retryExecutor := NewPessimisticRetryExecutor().Decorate(ctx)
+	retryExecutor := new(PessimisticRetryExecutor).Decorate(ctx)
 
 	assert.Equal(t, consts.RETRY_ON_GOING, int(retryExecutor.GetRetryState()))
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())

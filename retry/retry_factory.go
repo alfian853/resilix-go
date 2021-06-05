@@ -8,9 +8,9 @@ import (
 func CreateRetryExecutor(ctx *context.Context) RetryExecutor {
 	switch ctx.Config.RetryStrategy {
 	case consts.RETRY_OPTIMISTIC:
-		return NewOptimisticRetryExecutor().Decorate(ctx)
+		return new(OptimisticRetryExecutor).Decorate(ctx)
 	case consts.RETRY_PESSIMISTIC:
-		return NewPessimisticRetryExecutor().Decorate(ctx)
+		return 	new(PessimisticRetryExecutor).Decorate(ctx)
 	}
 
 	return nil
