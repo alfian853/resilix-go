@@ -7,11 +7,6 @@ type CloseStateHandler struct {
 	DefaultStateHandlerExt
 }
 
-func NewCloseStateHandler() *CloseStateHandler {
-	return &CloseStateHandler{}
-}
-
-
 func (stateHandler *CloseStateHandler) Decorate(ctx *context.Context, stateContainer StateContainer) *CloseStateHandler {
 	stateHandler.DefaultStateHandler.Decorate(ctx, stateHandler, stateHandler, stateContainer)
 	stateHandler.slidingWindow.Clear()
@@ -29,7 +24,7 @@ func (stateHandler *CloseStateHandler) acquirePermission() bool {
 func (stateHandler *CloseStateHandler) EvaluateState() {
 
 	if !stateHandler.acquirePermission() {
-		newHandler := NewOpenStateHandler().Decorate(stateHandler.context, stateHandler.stateContainer)
+		newHandler := new(OpenStateHandler).Decorate(stateHandler.context, stateHandler.stateContainer)
 		stateHandler.stateContainer.SetStateHandler(newHandler)
 	}
 

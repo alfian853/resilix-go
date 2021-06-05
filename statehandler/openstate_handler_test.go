@@ -22,7 +22,7 @@ func TestOpenState_movingStateAfterWaitingDurationIsSatisfied(t *testing.T) {
 	ctx.SWindow = slidingwindow.NewCountBasedSlidingWindow(ctx.Config)
 	container := testStateContainer{}
 
-	stateHandler := NewOpenStateHandler().Decorate(ctx, &container)
+	stateHandler := new(OpenStateHandler).Decorate(ctx, &container)
 
 	container.SetStateHandler(stateHandler)
 
@@ -78,7 +78,7 @@ func TestOpenState_shouldNotAck(t *testing.T) {
 
  	container := testStateContainer{}
 
-	stateHandler := NewOpenStateHandler().Decorate(ctx, &container)
+	stateHandler := new(OpenStateHandler).Decorate(ctx, &container)
 
 	container.SetStateHandler(stateHandler)
 

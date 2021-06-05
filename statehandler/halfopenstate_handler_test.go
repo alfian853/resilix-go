@@ -24,7 +24,7 @@ func TestHalfOpenState_retryAndSuccess(t *testing.T) {
 	ctx.SWindow = slidingwindow.NewCountBasedSlidingWindow(ctx.Config)
 	container := testStateContainer{}
 
-	stateHandler := NewHalfOpenStateHandler().Decorate(ctx, &container)
+	stateHandler := new(HalfOpenStateHandler).Decorate(ctx, &container)
 
 	container.SetStateHandler(stateHandler)
 
@@ -74,7 +74,7 @@ func TestHalfOpenState_retryAndFailed(t *testing.T) {
 	ctx.SWindow = slidingwindow.NewCountBasedSlidingWindow(ctx.Config)
 	container := testStateContainer{}
 
-	stateHandler := NewHalfOpenStateHandler().Decorate(ctx, &container)
+	stateHandler := new(HalfOpenStateHandler).Decorate(ctx, &container)
 
 	container.SetStateHandler(stateHandler)
 

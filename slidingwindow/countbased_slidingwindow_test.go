@@ -32,7 +32,7 @@ func TestCountBasedSwCompleteCase(t *testing.T){
 			cwindow.AckAttempt(testutil.RandBool())
 		}, &wg)
 	}
-
+	wg.Wait()
 	nSuccess := 7
 	nFailure := 3
 

@@ -25,7 +25,7 @@ func TestCloseStateHandler_minCallToEvaluate(t *testing.T) {
 	ctx.SWindow = slidingwindow.NewCountBasedSlidingWindow(ctx.Config)
 	container := testStateContainer{}
 
-	stateHandler := NewCloseStateHandler().Decorate(ctx, &container)
+	stateHandler := new(CloseStateHandler).Decorate(ctx, &container)
 
 	container.SetStateHandler(stateHandler)
 
@@ -65,7 +65,7 @@ func TestCloseStateHandler_stillCloseAfterNumberOfAck(t *testing.T) {
 	ctx.SWindow = slidingwindow.NewCountBasedSlidingWindow(ctx.Config)
 	container := testStateContainer{}
 
-	stateHandler := NewCloseStateHandler().Decorate(ctx, &container)
+	stateHandler := new(CloseStateHandler).Decorate(ctx, &container)
 
 	container.SetStateHandler(stateHandler)
 
@@ -110,7 +110,7 @@ func TestCloseStateHandler_moveToOpenState(t *testing.T) {
 	ctx.SWindow = slidingwindow.NewCountBasedSlidingWindow(ctx.Config)
 	container := testStateContainer{}
 
-	stateHandler := NewCloseStateHandler().Decorate(ctx, &container)
+	stateHandler := new(CloseStateHandler).Decorate(ctx, &container)
 
 	container.SetStateHandler(stateHandler)
 

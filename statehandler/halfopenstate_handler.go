@@ -14,10 +14,6 @@ type HalfOpenStateHandler struct {
 	retryExecutor retry.RetryExecutor
 }
 
-func NewHalfOpenStateHandler() *HalfOpenStateHandler {
-	return &HalfOpenStateHandler{}
-}
-
 func (stateHandler *HalfOpenStateHandler) Decorate(ctx *context.Context, stateContainer StateContainer) *HalfOpenStateHandler {
 	stateHandler.DefaultStateHandler.Decorate(ctx, stateHandler, stateHandler, stateContainer)
 	stateHandler.timeEnd = util.GetTimestamp() + stateHandler.configuration.WaitDurationInOpenState
@@ -52,7 +48,7 @@ func (stateHandler *HalfOpenStateHandler) acquirePermission() bool {
 func (stateHandler *HalfOpenStateHandler) EvaluateState() {
 	switch stateHandler.retryExecutor.GetRetryState() {
 	case consts.RETRY_ACCEPTED:
-		newStateHandler := NewCloseStateHandler().Decorate(stateHandler.context, stateHandler.stateContainer)
+		newStateHandler := new(CloseStateHandler).Decorate(stateHandler.context, stateHandler.stateContainer)
 		stateHandler.stateContainer.SetStateHandler(newStateHandler)
 		break
 

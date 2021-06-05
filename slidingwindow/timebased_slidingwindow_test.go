@@ -11,7 +11,7 @@ import (
 )
 
 const(
-	windowTimeRange = 250
+	windowTimeRange = 550
 )
 
 func initTimeBasedSlidingWindow() *TimeBasedSlidingWindow {

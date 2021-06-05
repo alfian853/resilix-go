@@ -11,10 +11,6 @@ type OpenStateHandler struct {
 	timeEnd int64
 }
 
-func NewOpenStateHandler() *OpenStateHandler {
-	return &OpenStateHandler{}
-}
-
 func (stateHandler *OpenStateHandler) Decorate(ctx *context.Context, stateContainer StateContainer) *OpenStateHandler {
 	stateHandler.DefaultStateHandler.Decorate(ctx, stateHandler, stateHandler, stateContainer)
 	stateHandler.timeEnd = util.GetTimestamp() + stateHandler.configuration.WaitDurationInOpenState
@@ -38,7 +34,7 @@ func (stateHandler *OpenStateHandler) acquirePermission() bool {
 func (stateHandler *OpenStateHandler) EvaluateState() {
 
 	if stateHandler.timeEnd <= util.GetTimestamp() {
-		newHandler := NewHalfOpenStateHandler().Decorate(stateHandler.context, stateHandler.stateContainer)
+		newHandler := new(HalfOpenStateHandler).Decorate(stateHandler.context, stateHandler.stateContainer)
 		stateHandler.stateContainer.SetStateHandler(newHandler)
 	}
 }
