@@ -1,10 +1,10 @@
 package retry
 
 import (
-	conf "resilix-go/config"
-	"resilix-go/consts"
-	"resilix-go/context"
-	"resilix-go/util"
+	conf "github.com/alfian853/resilix-go/config"
+	"github.com/alfian853/resilix-go/consts"
+	"github.com/alfian853/resilix-go/context"
+	"github.com/alfian853/resilix-go/util"
 	"sync"
 	"sync/atomic"
 )

@@ -3,11 +3,11 @@ package statehandler
 import (
 	"github.com/stretchr/testify/assert"
 	"math"
-	"resilix-go/consts"
-	"resilix-go/context"
-	"resilix-go/slidingwindow"
-	"resilix-go/testutil"
-	"resilix-go/util"
+	"github.com/alfian853/resilix-go/consts"
+	"github.com/alfian853/resilix-go/context"
+	"github.com/alfian853/resilix-go/slidingwindow"
+	"github.com/alfian853/resilix-go/testutil"
+	"github.com/alfian853/resilix-go/util"
 	"sync"
 	"testing"
 )

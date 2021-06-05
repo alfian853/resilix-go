@@ -1,6 +1,6 @@
 package statehandler
 
-import "resilix-go/context"
+import "github.com/alfian853/resilix-go/context"
 
 type CloseStateHandler struct {
 	DefaultStateHandler

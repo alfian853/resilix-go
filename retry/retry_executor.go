@@ -1,8 +1,8 @@
 package retry
 
 import (
-	"resilix-go/consts"
-	"resilix-go/util"
+	"github.com/alfian853/resilix-go/consts"
+	"github.com/alfian853/resilix-go/util"
 )
 
 type RetryExecutor interface {

@@ -1,9 +1,9 @@
 package registry
 
 import (
-	conf "resilix-go/config"
-	"resilix-go/context"
-	"resilix-go/proxy"
+	conf "github.com/alfian853/resilix-go/config"
+	"github.com/alfian853/resilix-go/context"
+	"github.com/alfian853/resilix-go/proxy"
 )
 
 var	executorMap = make(map[string]proxy.ResilixExecutor)

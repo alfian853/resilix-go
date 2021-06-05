@@ -2,9 +2,9 @@ package slidingwindow
 
 import (
 	"github.com/stretchr/testify/assert"
-	conf "resilix-go/config"
-	"resilix-go/testutil"
-	"resilix-go/util"
+	conf "github.com/alfian853/resilix-go/config"
+	"github.com/alfian853/resilix-go/testutil"
+	"github.com/alfian853/resilix-go/util"
 	"sync"
 	"testing"
 	"time"

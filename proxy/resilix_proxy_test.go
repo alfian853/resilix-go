@@ -3,9 +3,9 @@ package proxy
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"resilix-go/context"
-	"resilix-go/statehandler"
-	"resilix-go/testutil"
+	"github.com/alfian853/resilix-go/context"
+	"github.com/alfian853/resilix-go/statehandler"
+	"github.com/alfian853/resilix-go/testutil"
 	"testing"
 )
 

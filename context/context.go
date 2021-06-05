@@ -1,8 +1,8 @@
 package context
 
 import (
-	"resilix-go/config"
-	"resilix-go/slidingwindow"
+	"github.com/alfian853/resilix-go/config"
+	"github.com/alfian853/resilix-go/slidingwindow"
 )
 
 type Context struct {

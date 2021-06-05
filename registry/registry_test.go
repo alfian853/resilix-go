@@ -2,8 +2,8 @@ package registry
 
 import (
 	"github.com/stretchr/testify/assert"
-	"resilix-go/config"
-	"resilix-go/consts"
+	"github.com/alfian853/resilix-go/config"
+	"github.com/alfian853/resilix-go/consts"
 	"testing"
 )
 

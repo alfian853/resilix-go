@@ -1,8 +1,8 @@
 package statehandler
 
 import (
-	"resilix-go/context"
-	"resilix-go/util"
+	"github.com/alfian853/resilix-go/context"
+	"github.com/alfian853/resilix-go/util"
 )
 
 type OpenStateHandler struct {

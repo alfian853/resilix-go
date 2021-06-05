@@ -1,8 +1,8 @@
 package retry
 
 import (
-	"resilix-go/consts"
-	"resilix-go/context"
+	"github.com/alfian853/resilix-go/consts"
+	"github.com/alfian853/resilix-go/context"
 )
 
 func CreateRetryExecutor(ctx *context.Context) RetryExecutor {

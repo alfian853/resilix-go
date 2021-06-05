@@ -1,10 +1,10 @@
 package statehandler
 
 import (
-	"resilix-go/consts"
-	"resilix-go/context"
-	"resilix-go/retry"
-	"resilix-go/util"
+	"github.com/alfian853/resilix-go/consts"
+	"github.com/alfian853/resilix-go/context"
+	"github.com/alfian853/resilix-go/retry"
+	"github.com/alfian853/resilix-go/util"
 )
 
 type HalfOpenStateHandler struct {

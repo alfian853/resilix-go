@@ -1,10 +1,10 @@
 package statehandler
 
 import (
-	conf "resilix-go/config"
-	"resilix-go/context"
-	"resilix-go/slidingwindow"
-	"resilix-go/util"
+	conf "github.com/alfian853/resilix-go/config"
+	"github.com/alfian853/resilix-go/context"
+	"github.com/alfian853/resilix-go/slidingwindow"
+	"github.com/alfian853/resilix-go/util"
 )
 
 type StateHandler interface {

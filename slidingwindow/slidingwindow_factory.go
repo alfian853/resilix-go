@@ -1,8 +1,8 @@
 package slidingwindow
 
 import (
-	conf "resilix-go/config"
-	"resilix-go/consts"
+	conf "github.com/alfian853/resilix-go/config"
+	"github.com/alfian853/resilix-go/consts"
 )
 
 func CreateSlidingWindow(conf *conf.Configuration) SlidingWindow {

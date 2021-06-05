@@ -1,7 +1,7 @@
 package config
 
 import (
-	"resilix-go/consts"
+	"github.com/alfian853/resilix-go/consts"
 )
 
 const (

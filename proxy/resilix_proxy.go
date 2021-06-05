@@ -1,9 +1,9 @@
 package proxy
 
 import (
-	"resilix-go/context"
-	"resilix-go/statehandler"
-	"resilix-go/util"
+	"github.com/alfian853/resilix-go/context"
+	"github.com/alfian853/resilix-go/statehandler"
+	"github.com/alfian853/resilix-go/util"
 )
 
 type ResilixExecutor interface {
