@@ -18,6 +18,8 @@ type DefaultStateHandlerExt interface {
 }
 
 type DefaultStateHandler struct {
+	StateHandler
+
 	util.CheckedExecutor
 	stateHandler StateHandler
 	stateContainer StateContainer

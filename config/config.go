@@ -23,7 +23,7 @@ type Configuration struct {
 func NewConfiguration() *Configuration {
 	config := Configuration{}
 
-	config.SlidingWindowStrategy = consts.COUNT_BASED
+	config.SlidingWindowStrategy = consts.SwStrategy_CountBased
 	config.RetryStrategy = consts.RETRY_PESSIMISTIC
 	config.SlidingWindowTimeRange = 10 * SECONDS_IN_MS
 	config.SlidingWindowMaxSize = 20

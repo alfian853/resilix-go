@@ -6,15 +6,19 @@ import (
 	"resilix-go/util"
 )
 
-type ResilixProxy struct {
+type ResilixExecutor interface {
 	util.CheckedExecutor
 	util.Executor
-	statehandler.StateContainer
+}
 
+type ResilixProxy struct {
+	ResilixExecutor
+	statehandler.StateContainer
 	stateHandler statehandler.StateHandler
 }
 
-func (proxy *ResilixProxy) Decorate(ctx *context.Context) *ResilixProxy {
+func NewResilixProxy(ctx *context.Context) *ResilixProxy {
+	proxy := new(ResilixProxy)
 	proxy.stateHandler = new(statehandler.CloseStateHandler).Decorate(ctx, proxy)
 
 	return proxy

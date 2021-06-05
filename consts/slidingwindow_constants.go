@@ -4,8 +4,8 @@ type SwStrategy string
 type SwLock *int32
 const (
 	// sliding window type
-	COUNT_BASED = "count-based"
-	TIME_BASED = "time-based"
+	SwStrategy_CountBased = "count-based"
+	SwStrategy_TimeBased  = "time-based"
 )
 
 const (

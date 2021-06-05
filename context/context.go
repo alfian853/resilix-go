@@ -11,9 +11,21 @@ type Context struct {
 }
 
 func NewContextDefault() *Context {
-	ctx := Context{}
+	ctx := new(Context)
 	ctx.Config = config.NewConfiguration()
 	ctx.SWindow = slidingwindow.NewCountBasedSlidingWindow(ctx.Config)
 
-	return &ctx
+	return ctx
+}
+
+func NewContext(conf *config.Configuration) *Context {
+	if conf == nil {
+		return NewContextDefault()
+	}
+
+	ctx := new(Context)
+	ctx.Config = conf
+	ctx.SWindow = slidingwindow.CreateSlidingWindow(conf)
+
+	return ctx
 }

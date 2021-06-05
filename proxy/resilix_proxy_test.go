@@ -54,7 +54,7 @@ func getMockedStateHandler(isRuntimePanic bool)(positiveMock *stateHandlerMock, 
 func TestResilixProxy_executeChecked(t *testing.T) {
 
 	ctx := context.NewContextDefault()
-	proxy := new(ResilixProxy).Decorate(ctx)
+	proxy := NewResilixProxy(ctx)
 
 	positiveStateHandler, negativeStateHandler := getMockedStateHandler(false)
 
@@ -97,7 +97,7 @@ func TestResilixProxy_executeChecked(t *testing.T) {
 func TestResilixProxy_executeUnsafe(t *testing.T) {
 
 	ctx := context.NewContextDefault()
-	proxy := new(ResilixProxy).Decorate(ctx)
+	proxy := NewResilixProxy(ctx)
 
 	positiveStateHandler, negativeStateHandler := getMockedStateHandler(true)
 
