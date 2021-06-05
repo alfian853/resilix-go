@@ -10,7 +10,7 @@ import (
 type StateHandler interface {
 	util.CheckedExecutor
 	EvaluateState()
-	AcquirePermission() bool
+	acquirePermission() bool
 }
 
 type DefaultStateHandlerExt interface {
@@ -54,7 +54,7 @@ func (defHandler *DefaultStateHandler) ExecuteChecked(fun func() error) (execute
 		}
 	}()
 
-	if !defHandler.stateHandler.AcquirePermission() {
+	if !defHandler.stateHandler.acquirePermission() {
 		return false, nil
 	}
 	executed = true
@@ -76,7 +76,7 @@ func (defHandler *DefaultStateHandler) ExecuteCheckedSupplier(fun func()(interfa
 		}
 	}()
 
-	if !defHandler.stateHandler.AcquirePermission() {
+	if !defHandler.stateHandler.acquirePermission() {
 		return false, nil, nil
 	}
 

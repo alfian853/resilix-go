@@ -26,11 +26,11 @@ func (stateHandler *OpenStateHandler) isSlidingWindowEnabled() bool {
 	return false
 }
 
-func (stateHandler *OpenStateHandler) AcquirePermission() bool {
+func (stateHandler *OpenStateHandler) acquirePermission() bool {
 	stateHandler.EvaluateState()
 
-	if stateHandler.stateContainer.getStateHandler() != stateHandler {
-		return stateHandler.stateContainer.getStateHandler().AcquirePermission()
+	if stateHandler.stateContainer.GetStateHandler() != stateHandler {
+		return stateHandler.stateContainer.GetStateHandler().acquirePermission()
 	}
 	return false
 }
@@ -39,6 +39,6 @@ func (stateHandler *OpenStateHandler) EvaluateState() {
 
 	if stateHandler.timeEnd <= util.GetTimestamp() {
 		newHandler := NewHalfOpenStateHandler().Decorate(stateHandler.context, stateHandler.stateContainer)
-		stateHandler.stateContainer.setStateHandler(newHandler)
+		stateHandler.stateContainer.SetStateHandler(newHandler)
 	}
 }

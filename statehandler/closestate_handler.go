@@ -22,15 +22,15 @@ func (stateHandler *CloseStateHandler) isSlidingWindowEnabled() bool {
 	return true
 }
 
-func (stateHandler *CloseStateHandler) AcquirePermission() bool {
+func (stateHandler *CloseStateHandler) acquirePermission() bool {
 	return stateHandler.slidingWindow.GetErrorRate() < stateHandler.configuration.ErrorThreshold
 }
 
 func (stateHandler *CloseStateHandler) EvaluateState() {
 
-	if !stateHandler.AcquirePermission() {
+	if !stateHandler.acquirePermission() {
 		newHandler := NewOpenStateHandler().Decorate(stateHandler.context, stateHandler.stateContainer)
-		stateHandler.stateContainer.setStateHandler(newHandler)
+		stateHandler.stateContainer.SetStateHandler(newHandler)
 	}
 
 }

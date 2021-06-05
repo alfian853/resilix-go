@@ -26,7 +26,7 @@ func TestHalfOpenState_retryAndSuccess(t *testing.T) {
 
 	stateHandler := NewHalfOpenStateHandler().Decorate(ctx, &container)
 
-	container.setStateHandler(stateHandler)
+	container.SetStateHandler(stateHandler)
 
 	// maxAcceptableError is 2 since the error threshold is 50% for 5 times retry
 	maxAcceptableError := 2
@@ -43,7 +43,7 @@ func TestHalfOpenState_retryAndSuccess(t *testing.T) {
 		}, &wg)
 	}
 	wg.Wait()
-	assert.Equal(t, stateHandler, container.getStateHandler())
+	assert.Equal(t, stateHandler, container.GetStateHandler())
 
 	for i:=0; i < maxAcceptableError; i++ {
 		wg.Add(1)
@@ -55,9 +55,9 @@ func TestHalfOpenState_retryAndSuccess(t *testing.T) {
 		}, &wg)
 	}
 	wg.Wait()
-	assert.NotEqual(t, stateHandler, container.getStateHandler())
-	assert.True(t, container.getStateHandler().AcquirePermission())
-	assert.IsType(t, &CloseStateHandler{}, container.getStateHandler())
+	assert.NotEqual(t, stateHandler, container.GetStateHandler())
+	assert.True(t, container.GetStateHandler().acquirePermission())
+	assert.IsType(t, &CloseStateHandler{}, container.GetStateHandler())
 	assert.Equal(t, float32(0), ctx.SWindow.GetErrorRate())
 }
 
@@ -76,7 +76,7 @@ func TestHalfOpenState_retryAndFailed(t *testing.T) {
 
 	stateHandler := NewHalfOpenStateHandler().Decorate(ctx, &container)
 
-	container.setStateHandler(stateHandler)
+	container.SetStateHandler(stateHandler)
 
 	// minRequiredError is 2 since the error threshold is 50% for 5 times retry
 	minRequiredError := 3
@@ -93,7 +93,7 @@ func TestHalfOpenState_retryAndFailed(t *testing.T) {
 
 	}
 	wg.Wait()
-	assert.Equal(t, stateHandler, container.getStateHandler())
+	assert.Equal(t, stateHandler, container.GetStateHandler())
 
 	for i:=0; i < minRequiredError; i++ {
 		wg.Add(1)
@@ -111,7 +111,7 @@ func TestHalfOpenState_retryAndFailed(t *testing.T) {
 	assert.False(t, executed)
 	assert.Nil(t, err)
 
-	assert.NotEqual(t, stateHandler, container.getStateHandler())
-	assert.IsType(t, &OpenStateHandler{}, container.getStateHandler())
-	assert.False(t, container.getStateHandler().AcquirePermission())
+	assert.NotEqual(t, stateHandler, container.GetStateHandler())
+	assert.IsType(t, &OpenStateHandler{}, container.GetStateHandler())
+	assert.False(t, container.GetStateHandler().acquirePermission())
 }

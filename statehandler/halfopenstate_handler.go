@@ -45,7 +45,7 @@ func (stateHandler *HalfOpenStateHandler) isSlidingWindowEnabled() bool {
 	return true
 }
 
-func (stateHandler *HalfOpenStateHandler) AcquirePermission() bool {
+func (stateHandler *HalfOpenStateHandler) acquirePermission() bool {
 	return false
 }
 
@@ -53,12 +53,12 @@ func (stateHandler *HalfOpenStateHandler) EvaluateState() {
 	switch stateHandler.retryExecutor.GetRetryState() {
 	case consts.RETRY_ACCEPTED:
 		newStateHandler := NewCloseStateHandler().Decorate(stateHandler.context, stateHandler.stateContainer)
-		stateHandler.stateContainer.setStateHandler(newStateHandler)
+		stateHandler.stateContainer.SetStateHandler(newStateHandler)
 		break
 
 	case consts.RETRY_REJECTED:
-		newStateHandler := NewOpenStateHandler().Decorate(stateHandler.context, stateHandler.stateContainer)
-		stateHandler.stateContainer.setStateHandler(newStateHandler)
+		newStateHandler := new(OpenStateHandler).Decorate(stateHandler.context, stateHandler.stateContainer)
+		stateHandler.stateContainer.SetStateHandler(newStateHandler)
 		break
 
 	case consts.RETRY_ON_GOING:

@@ -24,17 +24,17 @@ func TestOpenState_movingStateAfterWaitingDurationIsSatisfied(t *testing.T) {
 
 	stateHandler := NewOpenStateHandler().Decorate(ctx, &container)
 
-	container.setStateHandler(stateHandler)
+	container.SetStateHandler(stateHandler)
 
-	assert.False(t, stateHandler.AcquirePermission())
-	assert.False(t, container.getStateHandler().AcquirePermission())
-	assert.Equal(t, stateHandler, container.getStateHandler())
+	assert.False(t, stateHandler.acquirePermission())
+	assert.False(t, container.GetStateHandler().acquirePermission())
+	assert.Equal(t, stateHandler, container.GetStateHandler())
 
 	time.Sleep(time.Duration(ctx.Config.WaitDurationInOpenState/2) * time.Millisecond)
 
-	assert.False(t, stateHandler.AcquirePermission())
-	assert.False(t, container.getStateHandler().AcquirePermission())
-	assert.Equal(t, stateHandler, container.getStateHandler())
+	assert.False(t, stateHandler.acquirePermission())
+	assert.False(t, container.GetStateHandler().acquirePermission())
+	assert.Equal(t, stateHandler, container.GetStateHandler())
 
 	executed, result, err := stateHandler.ExecuteCheckedSupplier(testutil.PanicCheckedSupplier("won't happen"))
 
@@ -49,10 +49,10 @@ func TestOpenState_movingStateAfterWaitingDurationIsSatisfied(t *testing.T) {
 
 	time.Sleep(time.Duration(ctx.Config.WaitDurationInOpenState/2) * time.Millisecond)
 
-	container.getStateHandler().EvaluateState()
-	assert.NotEqual(t, stateHandler, container.getStateHandler())
+	container.GetStateHandler().EvaluateState()
+	assert.NotEqual(t, stateHandler, container.GetStateHandler())
 
-	assert.IsType(t, &HalfOpenStateHandler{}, container.getStateHandler())
+	assert.IsType(t, &HalfOpenStateHandler{}, container.GetStateHandler())
 }
 
 func TestOpenState_shouldNotAck(t *testing.T) {
@@ -80,12 +80,12 @@ func TestOpenState_shouldNotAck(t *testing.T) {
 
 	stateHandler := NewOpenStateHandler().Decorate(ctx, &container)
 
-	container.setStateHandler(stateHandler)
+	container.SetStateHandler(stateHandler)
 
 	for i:=0; i < ctx.Config.SlidingWindowMaxSize; i++ {
 		ctx.SWindow.AckAttempt(false)
 	}
 
-	assert.Equal(t, stateHandler, container.getStateHandler())
+	assert.Equal(t, stateHandler, container.GetStateHandler())
 	assert.Equal(t, initialError, stateHandler.slidingWindow.GetErrorRate())
 }

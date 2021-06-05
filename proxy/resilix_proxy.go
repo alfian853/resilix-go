@@ -1,20 +1,32 @@
-package statehandler
+package proxy
 
-import "resilix-go/util"
+import (
+	"resilix-go/context"
+	"resilix-go/statehandler"
+	"resilix-go/util"
+)
 
 type ResilixProxy struct {
 	util.CheckedExecutor
 	util.Executor
-	StateContainer
-	stateHandler StateHandler
+	statehandler.StateContainer
+
+	stateHandler statehandler.StateHandler
+}
+
+func (proxy *ResilixProxy) Decorate(ctx *context.Context) *ResilixProxy {
+	proxy.stateHandler = new(statehandler.CloseStateHandler).Decorate(ctx, proxy)
+
+	return proxy
 }
 
 // StateContainer
-func (proxy *ResilixProxy) setStateHandler(stateHandler StateHandler)  {
+func (proxy *ResilixProxy) SetStateHandler(stateHandler statehandler.StateHandler)  {
 	proxy.stateHandler = stateHandler
 }
 
-func (proxy *ResilixProxy) getStateHandler() StateHandler  {
+func (proxy *ResilixProxy) GetStateHandler() statehandler.StateHandler {
+	proxy.stateHandler.EvaluateState()
 	return proxy.stateHandler
 }
 
@@ -35,7 +47,6 @@ func (proxy *ResilixProxy) ExecuteCheckedSupplier(fun func()(interface{}, error)
 
 // Executor
 func (proxy *ResilixProxy) Execute(fun func()) bool {
-	proxy.stateHandler.EvaluateState()
 
 	isExecuted, err := proxy.ExecuteChecked(func() (err error) {
 		fun()
@@ -49,7 +60,6 @@ func (proxy *ResilixProxy) Execute(fun func()) bool {
 }
 
 func (proxy *ResilixProxy) ExecuteSupplier(fun func() interface{}) (bool, interface{})  {
-	proxy.stateHandler.EvaluateState()
 
 	isExecuted, result, err := proxy.ExecuteCheckedSupplier(func() (interface{},error) {
 		return fun(), nil

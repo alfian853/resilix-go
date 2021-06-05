@@ -7,11 +7,11 @@ type testStateContainer struct {
 	stateHandler StateHandler
 }
 
-func (container *testStateContainer) setStateHandler(handler StateHandler)  {
+func (container *testStateContainer) SetStateHandler(handler StateHandler)  {
 	container.stateHandler = handler
 }
 
-func (container *testStateContainer) getStateHandler() StateHandler {
+func (container *testStateContainer) GetStateHandler() StateHandler {
 	return container.stateHandler
 }
 
