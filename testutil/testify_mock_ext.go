@@ -16,7 +16,7 @@ func (m *ModifiedMock) On(methodName string, arguments ...interface{}) *mock.Cal
 
 	// search and replace existing method mock
 	for i := 0; i < lenObs; i++ {
-		if methodName == m.ExpectedCalls[i].Method {
+		if methodName == m.ExpectedCalls[i].Method && isArgsEqual(m.ExpectedCalls[i].Arguments, arguments){
 			targetIndex = &i
 			break
 		}
