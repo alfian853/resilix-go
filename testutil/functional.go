@@ -39,8 +39,8 @@ func TrueCheckedSupplier() func() (interface{}, error) {
 	}
 }
 
-func TrueSupplier() func() bool {
-	return func() bool {
+func TrueSupplier() func() interface{} {
+	return func() interface{} {
 		return true
 	}
 }
