@@ -1,27 +1,36 @@
 package retry
 
 import (
+	conf "github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/consts"
 	"github.com/alfian853/resilix-go/context"
+	"github.com/alfian853/resilix-go/executor"
+	"github.com/alfian853/resilix-go/util"
+	"sync"
 	"sync/atomic"
 )
 
 type OptimisticRetryExecutor struct {
-	DefaultRetryExecutor
-	RetryExecutorExt
+	RetryExecutor
+	executor.DefaultExecutorExt
+	defExecutor *executor.DefaultExecutor
 	retryState *consts.RetryState
+	writeNORLock sync.Mutex
+	numberOfRetry *int32
+	numberOfAck   *int32
+	numberOfFail  *int32
+	ctx           *context.Context
+	config        *conf.Configuration
 }
 
 func (retry *OptimisticRetryExecutor) Decorate(ctx *context.Context) *OptimisticRetryExecutor {
-	retry.DefaultRetryExecutor.Decorate(ctx, retry)
+	retry.defExecutor = new(executor.DefaultExecutor).Decorate(retry)
 	retry.retryState = consts.NewRetryState(consts.RETRY_ON_GOING)
-	return retry
-}
-
-func (retry *OptimisticRetryExecutor) DecorateWithSource(
-	ctx *context.Context, source RetryExecutorExt) *OptimisticRetryExecutor {
-	retry.DefaultRetryExecutor.Decorate(ctx, source)
-	retry.retryState = consts.NewRetryState(consts.RETRY_ON_GOING)
+	retry.ctx = ctx
+	retry.config = ctx.Config
+	retry.numberOfRetry = util.NewInt32(0)
+	retry.numberOfFail = util.NewInt32(0)
+	retry.numberOfAck = util.NewInt32(0)
 	return retry
 }
 
@@ -44,10 +53,19 @@ func (retry *OptimisticRetryExecutor) GetRetryState() consts.RetryState {
 	return consts.RETRY_ON_GOING
 }
 
+func (retry *OptimisticRetryExecutor) ExecuteChecked(fun func() error) (executed bool, err error) {
+	return retry.defExecutor.ExecuteChecked(fun)
+}
+
+func (retry *OptimisticRetryExecutor) ExecuteCheckedSupplier(fun func()(interface{}, error)) (
+	executed bool, result interface{}, err error) {
+	return retry.defExecutor.ExecuteCheckedSupplier(fun)
+}
+
 /*
 unsafe to be exposed to the public due to no execution guarantee after this method call
 */
-func (retry *OptimisticRetryExecutor) acquireAndUpdateRetryPermission() bool {
+func (retry *OptimisticRetryExecutor) AcquirePermission() bool {
 	numberOfRetry := atomic.AddInt32(retry.numberOfRetry, 1) - 1
 
 	if numberOfRetry >= retry.config.NumberOfRetryInHalfOpenState {
@@ -59,14 +77,17 @@ func (retry *OptimisticRetryExecutor) acquireAndUpdateRetryPermission() bool {
 	return true
 }
 
-func (retry *OptimisticRetryExecutor) onAfterExecution()  {
-	// do nothing
+func (retry *OptimisticRetryExecutor) OnAfterExecution(success bool)  {
+
+	atomic.AddInt32(retry.numberOfAck, 1)
+	if !success {
+		atomic.AddInt32(retry.numberOfFail, 1)
+	}
 }
 
 func (retry *OptimisticRetryExecutor) isErrorLimitExceeded() bool {
 	return retry.getErrorRate() >= retry.config.ErrorThreshold
 }
-
 
 func (retry *OptimisticRetryExecutor) getErrorRate() float32 {
 	if atomic.LoadInt32(retry.numberOfFail) == 0 {

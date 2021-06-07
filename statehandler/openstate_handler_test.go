@@ -26,14 +26,10 @@ func TestOpenState_movingStateAfterWaitingDurationIsSatisfied(t *testing.T) {
 
 	container.SetStateHandler(stateHandler)
 
-	assert.False(t, stateHandler.acquirePermission())
-	assert.False(t, container.GetStateHandler().acquirePermission())
 	assert.Equal(t, stateHandler, container.GetStateHandler())
 
 	time.Sleep(time.Duration(ctx.Config.WaitDurationInOpenState/2) * time.Millisecond)
 
-	assert.False(t, stateHandler.acquirePermission())
-	assert.False(t, container.GetStateHandler().acquirePermission())
 	assert.Equal(t, stateHandler, container.GetStateHandler())
 
 	executed, result, err := stateHandler.ExecuteCheckedSupplier(testutil.PanicCheckedSupplier("won't happen"))

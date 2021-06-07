@@ -56,7 +56,6 @@ func TestHalfOpenState_retryAndSuccess(t *testing.T) {
 	}
 	wg.Wait()
 	assert.NotEqual(t, stateHandler, container.GetStateHandler())
-	assert.True(t, container.GetStateHandler().acquirePermission())
 	assert.IsType(t, &CloseStateHandler{}, container.GetStateHandler())
 	assert.Equal(t, float32(0), ctx.SWindow.GetErrorRate())
 }
@@ -113,5 +112,4 @@ func TestHalfOpenState_retryAndFailed(t *testing.T) {
 
 	assert.NotEqual(t, stateHandler, container.GetStateHandler())
 	assert.IsType(t, &OpenStateHandler{}, container.GetStateHandler())
-	assert.False(t, container.GetStateHandler().acquirePermission())
 }

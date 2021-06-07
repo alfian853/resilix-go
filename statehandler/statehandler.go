@@ -3,27 +3,27 @@ package statehandler
 import (
 	conf "github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/context"
+	"github.com/alfian853/resilix-go/executor"
 	"github.com/alfian853/resilix-go/slidingwindow"
-	"github.com/alfian853/resilix-go/util"
 )
 
 type StateHandler interface {
-	util.CheckedExecutor
+	executor.CheckedExecutor
 	EvaluateState()
-	acquirePermission() bool
 }
 
 type DefaultStateHandlerExt interface {
+	acquirePermission() bool
 	isSlidingWindowEnabled() bool
 }
 
 type DefaultStateHandler struct {
 	StateHandler
 
-	util.CheckedExecutor
+	defExecutor *executor.DefaultExecutor
 	stateHandler StateHandler
-	stateContainer StateContainer
 	stateHandlerExt DefaultStateHandlerExt
+	stateContainer StateContainer
 	context *context.Context
 	slidingWindow slidingwindow.SlidingWindow
 	configuration *conf.Configuration
@@ -32,7 +32,7 @@ type DefaultStateHandler struct {
 func (defHandler *DefaultStateHandler) Decorate(
 	ctx *context.Context, concreteHandler StateHandler,
 	stateHandlerExt DefaultStateHandlerExt, stateContainer StateContainer) *DefaultStateHandler {
-
+	defHandler.defExecutor = new(executor.DefaultExecutor).Decorate(defHandler)
 	defHandler.context = ctx
 	defHandler.slidingWindow = ctx.SWindow
 	defHandler.configuration = ctx.Config
@@ -45,50 +45,19 @@ func (defHandler *DefaultStateHandler) Decorate(
 }
 
 func (defHandler *DefaultStateHandler) ExecuteChecked(fun func() error) (executed bool, err error) {
-	defer func() {
-		if executed {
-			defHandler.handleAfterExecution(err == nil)
-		}
-	}()
-	defer func() {
-		if message := recover(); message != nil {
-			err = &util.UnhandledError{Message: message}
-		}
-	}()
-
-	if !defHandler.stateHandler.acquirePermission() {
-		return false, nil
-	}
-	executed = true
-	err = fun()
-
-	return true, err
+	return defHandler.defExecutor.ExecuteChecked(fun)
 }
 
 func (defHandler *DefaultStateHandler) ExecuteCheckedSupplier(fun func()(interface{}, error)) (
 	executed bool, result interface{}, err error) {
-	defer func() {
-		if executed {
-			defHandler.handleAfterExecution(err == nil)
-		}
-	}()
-	defer func() {
-		if message := recover(); message != nil {
-			err = &util.UnhandledError{Message: message}
-		}
-	}()
-
-	if !defHandler.stateHandler.acquirePermission() {
-		return false, nil, nil
-	}
-
-	executed = true
-	result, err = fun()
-
-	return true, result, err
+	return defHandler.defExecutor.ExecuteCheckedSupplier(fun)
 }
 
-func (defHandler *DefaultStateHandler)handleAfterExecution(success bool){
+func (defHandler *DefaultStateHandler) AcquirePermission() bool {
+	return defHandler.stateHandlerExt.acquirePermission()
+}
+
+func (defHandler *DefaultStateHandler) OnAfterExecution(success bool) {
 	defHandler.context.SWindow.AckAttempt(success)
 	defHandler.stateHandler.EvaluateState()
 }

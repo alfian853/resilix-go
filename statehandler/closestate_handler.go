@@ -23,7 +23,7 @@ func (stateHandler *CloseStateHandler) acquirePermission() bool {
 
 func (stateHandler *CloseStateHandler) EvaluateState() {
 
-	if !stateHandler.acquirePermission() {
+	if !stateHandler.AcquirePermission() {
 		newHandler := new(OpenStateHandler).Decorate(stateHandler.context, stateHandler.stateContainer)
 		stateHandler.stateContainer.SetStateHandler(newHandler)
 	}

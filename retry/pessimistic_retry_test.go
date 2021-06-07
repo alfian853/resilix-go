@@ -11,21 +11,27 @@ import (
 	"testing"
 )
 
-func tryHardSuccess(t *testing.T, retryExecutor RetryExecutor) {
+func tryHardSuccess(t *testing.T, retryExecutor RetryExecutor, level int) {
+	if level > 20 {
+		return
+	}
 	executed, err := retryExecutor.ExecuteChecked(testutil.CheckedRunnable())
 	if !executed {
-		tryHardSuccess(t, retryExecutor)
+		tryHardSuccess(t, retryExecutor, level + 1)
 		return
 	}
 	assert.True(t, executed)
 	assert.Nil(t, err)
 }
 
-func tryHardFailed(t *testing.T, retryExecutor RetryExecutor) {
+func tryHardFailed(t *testing.T, retryExecutor RetryExecutor, level int) {
+	if level > 20 {
+		return
+	}
 	randErrorMessage := testutil.RandPanicMessage()
 	executed, result, err := retryExecutor.ExecuteCheckedSupplier(testutil.PanicCheckedSupplier(randErrorMessage))
 	if !executed {
-		tryHardFailed(t, retryExecutor)
+		tryHardFailed(t, retryExecutor,  level + 1)
 		return
 	}
 	assert.True(t, executed)
@@ -54,7 +60,7 @@ func TestPessimisticRetryRejected(t *testing.T){
 	for i:=0 ; i < maxSuccessAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			tryHardSuccess(t, retryExecutor)
+			tryHardSuccess(t, retryExecutor, 1)
 		}, &wg)
 	}
 	wg.Wait()
@@ -62,7 +68,7 @@ func TestPessimisticRetryRejected(t *testing.T){
 	for i:=0 ; i < minFailAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			tryHardFailed(t, retryExecutor)
+			tryHardFailed(t, retryExecutor, 1)
 		}, &wg)
 	}
 	wg.Wait()
@@ -92,14 +98,14 @@ func TestPessimisticRetryAcceptedCase(t *testing.T) {
 	for i:=0 ; i < minSuccessAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			tryHardSuccess(t, retryExecutor)
+			tryHardSuccess(t, retryExecutor, 1)
 		}, &wg)
 	}
 	wg.Wait()
 	for i:=0 ; i < int(ctx.Config.NumberOfRetryInHalfOpenState) - minSuccessAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			tryHardFailed(t, retryExecutor)
+			tryHardFailed(t, retryExecutor, 1)
 		}, &wg)
 	}
 

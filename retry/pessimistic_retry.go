@@ -22,15 +22,21 @@ func (retry *PessimisticRetryExecutor) Decorate(ctx *context.Context) *Pessimist
 	retry.ctx = ctx
 	retry.config = ctx.Config
 	retry.isAvailable = util.NewInt32(Available)
-	retry.OptimisticRetryExecutor.DecorateWithSource(ctx, retry)
+	retry.OptimisticRetryExecutor.Decorate(ctx)
 	return retry
 }
 
 func(retry *PessimisticRetryExecutor) acquireAndUpdateRetryPermission() bool {
 	return atomic.SwapInt32(retry.isAvailable, NotAvailable) == Available &&
-		retry.OptimisticRetryExecutor.acquireAndUpdateRetryPermission()
+		retry.OptimisticRetryExecutor.AcquirePermission()
 }
 
-func (retry *PessimisticRetryExecutor) onAfterExecution() {
+
+func (retry * PessimisticRetryExecutor) OnAfterExecution(success bool)  {
+
+	atomic.AddInt32(retry.numberOfAck, 1)
+	if !success {
+		atomic.AddInt32(retry.numberOfFail, 1)
+	}
 	atomic.SwapInt32(retry.isAvailable, Available)
 }

@@ -37,7 +37,6 @@ func TestCloseStateHandler_minCallToEvaluate(t *testing.T) {
 			assert.True(t, executed)
 			assert.Nil(t, result)
 			assert.Contains(t, err.Error(), uniqPanic)
-			assert.True(t, stateHandler.acquirePermission())
 		}, &wg)
 	}
 	wg.Wait()
@@ -78,7 +77,6 @@ func TestCloseStateHandler_stillCloseAfterNumberOfAck(t *testing.T) {
 		}, &wg)
 	}
 	wg.Wait()
-	assert.True(t, stateHandler.acquirePermission())
 	assert.Equal(t, stateHandler, container.GetStateHandler())
 
 	safeErrorAttempt := int(math.Ceil(float64(ctx.Config.SlidingWindowMaxSize)*float64(ctx.Config.ErrorThreshold)) - 1)
@@ -123,7 +121,6 @@ func TestCloseStateHandler_moveToOpenState(t *testing.T) {
 		}, &wg)
 	}
 	wg.Wait()
-	assert.True(t, stateHandler.acquirePermission())
 	assert.Equal(t, stateHandler, container.GetStateHandler())
 
 
@@ -142,6 +139,5 @@ func TestCloseStateHandler_moveToOpenState(t *testing.T) {
 	wg.Wait()
 	assert.NotEqual(t, stateHandler, container.GetStateHandler())
 	assert.IsType(t, &OpenStateHandler{}, container.GetStateHandler())
-	assert.False(t, container.GetStateHandler().acquirePermission())
 }
 

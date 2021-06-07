@@ -2,13 +2,13 @@ package proxy
 
 import (
 	"github.com/alfian853/resilix-go/context"
+	"github.com/alfian853/resilix-go/executor"
 	"github.com/alfian853/resilix-go/statehandler"
-	"github.com/alfian853/resilix-go/util"
 )
 
 type ResilixExecutor interface {
-	util.CheckedExecutor
-	util.Executor
+	executor.CheckedExecutor
+	executor.Executor
 }
 
 type ResilixProxy struct {

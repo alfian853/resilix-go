@@ -52,7 +52,7 @@ func TestOptimisticRetryRejected(t *testing.T) {
 	wg.Wait()
 
 	assert.True(t, retryExecutor.getErrorRate() >= ctx.Config.ErrorThreshold)
-	assert.False(t, retryExecutor.acquireAndUpdateRetryPermission())
+	assert.False(t, retryExecutor.AcquirePermission())
 	assert.Equal(t, consts.RETRY_REJECTED, retryExecutor.GetRetryState())
 }
 
@@ -95,6 +95,6 @@ func TestOptimisticRetryAcceptedCase(t *testing.T) {
 	wg.Wait()
 
 	assert.True(t,  retryExecutor.getErrorRate() < ctx.Config.ErrorThreshold)
-	assert.False(t, retryExecutor.acquireAndUpdateRetryPermission())
+	assert.False(t, retryExecutor.AcquirePermission())
 	assert.Equal(t, consts.RETRY_ACCEPTED, retryExecutor.GetRetryState())
 }
