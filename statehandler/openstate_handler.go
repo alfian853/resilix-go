@@ -24,10 +24,6 @@ func (stateHandler *OpenStateHandler) Decorate(ctx *context.Context, stateContai
 	return stateHandler
 }
 
-func (stateHandler *OpenStateHandler) isSlidingWindowEnabled() bool {
-	return false
-}
-
 func (stateHandler *OpenStateHandler) acquirePermission() bool {
 	stateHandler.EvaluateState()
 	return false

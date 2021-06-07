@@ -34,7 +34,6 @@ func (defHandler *DefaultStateHandler) Decorate(
 	defHandler.context = ctx
 	defHandler.slidingWindow = ctx.SWindow
 	defHandler.stateHandlerExt = stateHandlerExt
-	defHandler.slidingWindow.SetActive(defHandler.stateHandlerExt.isSlidingWindowEnabled())
 
 	return defHandler
 }

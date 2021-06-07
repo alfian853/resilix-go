@@ -2,9 +2,7 @@ package slidingwindow
 
 import (
 	conf "github.com/alfian853/resilix-go/config"
-	"github.com/alfian853/resilix-go/util"
 	"sync"
-	"sync/atomic"
 )
 
 type SwObserver interface {
@@ -14,19 +12,11 @@ type SwObserver interface {
 type SlidingWindow interface {
 	AckAttempt(success bool)
 	GetErrorRate() float32
-	SetActive(isActive bool)
 	Clear()
 
 	AddObserver(observer SwObserver)
 	RemoveObserver(observer SwObserver)
 }
-
-type IsActive *int32
-
-const (
-	Active   = 1
-	Inactive = 0
-)
 
 type DefaultSlidingWindowExt interface {
 	handleAckAttempt(success bool)
@@ -37,7 +27,6 @@ type DefaultSlidingWindowExt interface {
 type DefaultSlidingWindow struct {
 	SlidingWindow
 	swindowExt DefaultSlidingWindowExt
-	isActive IsActive
 	config *conf.Configuration
 	observerLock sync.Mutex
 	observers []SwObserver
@@ -45,7 +34,6 @@ type DefaultSlidingWindow struct {
 
 func (swindow *DefaultSlidingWindow) Decorate(swindowExt DefaultSlidingWindowExt,config *conf.Configuration)  {
 	swindow.swindowExt = swindowExt
-	swindow.isActive = util.NewInt32(Active)
 	swindow.config = config
 	swindow.observerLock = sync.Mutex{}
 	swindow.observers = make([]SwObserver, 0)
@@ -90,11 +78,9 @@ func (swindow *DefaultSlidingWindow) RemoveObserver(observer SwObserver) {
 
 func (swindow *DefaultSlidingWindow) AckAttempt(success bool) {
 
-	if atomic.LoadInt32(swindow.isActive) == Active {
-		swindow.swindowExt.handleAckAttempt(success)
-		for i:=0; i < len(swindow.observers); i++ {
-			swindow.observers[i].NotifyOnAckAttempt(success)
-		}
+	swindow.swindowExt.handleAckAttempt(success)
+	for i:=0; i < len(swindow.observers); i++ {
+		swindow.observers[i].NotifyOnAckAttempt(success)
 	}
 }
 
@@ -104,12 +90,4 @@ func (swindow *DefaultSlidingWindow) GetErrorRate() float32 {
 	}
 
 	return swindow.swindowExt.getErrorRateAfterMinCallSatisfied()
-}
-
-func (swindow *DefaultSlidingWindow) SetActive(active bool)  {
-	if active {
-		atomic.SwapInt32(swindow.isActive, Active)
-	} else {
-		atomic.SwapInt32(swindow.isActive, Inactive)
-	}
 }

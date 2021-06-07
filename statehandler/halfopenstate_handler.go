@@ -42,10 +42,6 @@ func (stateHandler *HalfOpenStateHandler) ExecuteCheckedSupplier(fun func()(inte
 	return stateHandler.retryExecutor.ExecuteCheckedSupplier(fun)
 }
 
-func (stateHandler *HalfOpenStateHandler) isSlidingWindowEnabled() bool {
-	return true
-}
-
 func (stateHandler *HalfOpenStateHandler) acquirePermission() bool {
 	return false
 }

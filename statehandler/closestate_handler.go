@@ -21,10 +21,6 @@ func (stateHandler *CloseStateHandler) Decorate(ctx *context.Context, stateConta
 	return stateHandler
 }
 
-func (stateHandler *CloseStateHandler) isSlidingWindowEnabled() bool {
-	return true
-}
-
 func (stateHandler *CloseStateHandler) acquirePermission() bool {
 	return stateHandler.slidingWindow.GetErrorRate() < stateHandler.configuration.ErrorThreshold
 }
