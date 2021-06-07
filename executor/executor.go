@@ -32,13 +32,11 @@ func (defExecutor *DefaultExecutor) Decorate(defaultExecutorExt DefaultExecutorE
 
 func (defExecutor *DefaultExecutor) ExecuteChecked(fun func() error) (executed bool, err error) {
 	defer func() {
-		if executed {
-			defExecutor.executorExt.OnAfterExecution(err == nil)
-		}
-	}()
-	defer func() {
 		if message := recover(); message != nil {
 			err = &util.UnhandledError{Message: message}
+		}
+		if executed {
+			defExecutor.executorExt.OnAfterExecution(err == nil)
 		}
 	}()
 
@@ -54,13 +52,11 @@ func (defExecutor *DefaultExecutor) ExecuteChecked(fun func() error) (executed b
 func (defExecutor *DefaultExecutor) ExecuteCheckedSupplier(fun func()(interface{}, error)) (
 	executed bool, result interface{}, err error) {
 	defer func() {
-		if executed {
-			defExecutor.executorExt.OnAfterExecution(err == nil)
-		}
-	}()
-	defer func() {
 		if message := recover(); message != nil {
 			err = &util.UnhandledError{Message: message}
+		}
+		if executed {
+			defExecutor.executorExt.OnAfterExecution(err == nil)
 		}
 	}()
 
