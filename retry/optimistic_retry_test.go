@@ -23,7 +23,7 @@ func TestOptimisticRetryRejected(t *testing.T) {
 
 	retryExecutor := new(OptimisticRetryExecutor).Decorate(ctx)
 
-	assert.Equal(t, consts.RETRY_ON_GOING, int(retryExecutor.GetRetryState()))
+	assert.Equal(t, consts.RETRY_ON_GOING, retryExecutor.GetRetryState())
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
 
 	minFailAck := int(ctx.Config.ErrorThreshold * float32(ctx.Config.NumberOfRetryInHalfOpenState))
@@ -53,7 +53,7 @@ func TestOptimisticRetryRejected(t *testing.T) {
 
 	assert.True(t, retryExecutor.getErrorRate() >= ctx.Config.ErrorThreshold)
 	assert.False(t, retryExecutor.acquireAndUpdateRetryPermission())
-	assert.Equal(t, consts.RETRY_REJECTED, int(retryExecutor.GetRetryState()))
+	assert.Equal(t, consts.RETRY_REJECTED, retryExecutor.GetRetryState())
 }
 
 func TestOptimisticRetryAcceptedCase(t *testing.T) {
@@ -67,7 +67,7 @@ func TestOptimisticRetryAcceptedCase(t *testing.T) {
 
 	retryExecutor := new(OptimisticRetryExecutor).Decorate(ctx)
 
-	assert.Equal(t, consts.RETRY_ON_GOING, int(retryExecutor.GetRetryState()))
+	assert.Equal(t, consts.RETRY_ON_GOING, retryExecutor.GetRetryState())
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
 
 	minSuccessAck := int(math.Ceil(float64((1 - ctx.Config.ErrorThreshold) * float32(ctx.Config.NumberOfRetryInHalfOpenState))) + 1)
@@ -96,5 +96,5 @@ func TestOptimisticRetryAcceptedCase(t *testing.T) {
 
 	assert.True(t,  retryExecutor.getErrorRate() < ctx.Config.ErrorThreshold)
 	assert.False(t, retryExecutor.acquireAndUpdateRetryPermission())
-	assert.Equal(t, consts.RETRY_ACCEPTED, int(retryExecutor.GetRetryState()))
+	assert.Equal(t, consts.RETRY_ACCEPTED, retryExecutor.GetRetryState())
 }

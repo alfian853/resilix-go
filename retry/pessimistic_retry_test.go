@@ -45,7 +45,7 @@ func TestPessimisticRetryRejected(t *testing.T){
 
 	retryExecutor := new(PessimisticRetryExecutor).Decorate(ctx)
 
-	assert.Equal(t, consts.RETRY_ON_GOING, int(retryExecutor.GetRetryState()))
+	assert.Equal(t, consts.RETRY_ON_GOING, retryExecutor.GetRetryState())
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
 
 	minFailAck := int(ctx.Config.ErrorThreshold * float32(ctx.Config.NumberOfRetryInHalfOpenState))
@@ -68,7 +68,7 @@ func TestPessimisticRetryRejected(t *testing.T){
 	wg.Wait()
 	assert.True(t, retryExecutor.getErrorRate() >= ctx.Config.ErrorThreshold)
 	assert.False(t, retryExecutor.acquireAndUpdateRetryPermission())
-	assert.Equal(t, consts.RETRY_REJECTED, int(retryExecutor.GetRetryState()))
+	assert.Equal(t, consts.RETRY_REJECTED, retryExecutor.GetRetryState())
 	assert.Equal(t, ctx.Config.NumberOfRetryInHalfOpenState, *retryExecutor.numberOfAck)
 }
 
@@ -83,7 +83,7 @@ func TestPessimisticRetryAcceptedCase(t *testing.T) {
 
 	retryExecutor := new(PessimisticRetryExecutor).Decorate(ctx)
 
-	assert.Equal(t, consts.RETRY_ON_GOING, int(retryExecutor.GetRetryState()))
+	assert.Equal(t, consts.RETRY_ON_GOING, retryExecutor.GetRetryState())
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
 
 
@@ -107,5 +107,5 @@ func TestPessimisticRetryAcceptedCase(t *testing.T) {
 
 	assert.True(t,  retryExecutor.getErrorRate() < ctx.Config.ErrorThreshold)
 	assert.False(t,  retryExecutor.acquireAndUpdateRetryPermission())
-	assert.Equal(t, consts.RETRY_ACCEPTED, int(retryExecutor.GetRetryState()))
+	assert.Equal(t, consts.RETRY_ACCEPTED, retryExecutor.GetRetryState())
 }

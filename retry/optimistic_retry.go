@@ -9,26 +9,35 @@ import (
 type OptimisticRetryExecutor struct {
 	DefaultRetryExecutor
 	RetryExecutorExt
+	retryState *consts.RetryState
 }
 
 func (retry *OptimisticRetryExecutor) Decorate(ctx *context.Context) *OptimisticRetryExecutor {
 	retry.DefaultRetryExecutor.Decorate(ctx, retry)
+	retry.retryState = consts.NewRetryState(consts.RETRY_ON_GOING)
 	return retry
 }
 
 func (retry *OptimisticRetryExecutor) DecorateWithSource(
 	ctx *context.Context, source RetryExecutorExt) *OptimisticRetryExecutor {
 	retry.DefaultRetryExecutor.Decorate(ctx, source)
+	retry.retryState = consts.NewRetryState(consts.RETRY_ON_GOING)
 	return retry
 }
 
 func (retry *OptimisticRetryExecutor) GetRetryState() consts.RetryState {
+
+	if consts.RetryState(atomic.LoadInt32((*int32)(retry.retryState))) != consts.RETRY_ON_GOING {
+		return *retry.retryState
+	}
+
 	if retry.isErrorLimitExceeded() {
+		atomic.SwapInt32((*int32)(retry.retryState), int32(consts.RETRY_REJECTED))
 		return consts.RETRY_REJECTED
 	}
 
-	if atomic.LoadInt32(retry.numberOfRetry) >= retry.config.NumberOfRetryInHalfOpenState &&
-		atomic.LoadInt32(retry.numberOfAck) == retry.config.NumberOfRetryInHalfOpenState {
+	if atomic.LoadInt32(retry.numberOfAck) >= retry.config.NumberOfRetryInHalfOpenState {
+		atomic.SwapInt32((*int32)(retry.retryState), int32(consts.RETRY_ACCEPTED))
 		return consts.RETRY_ACCEPTED
 	}
 
