@@ -1,6 +1,7 @@
 package statehandler
 
 import (
+	conf "github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/consts"
 	"github.com/alfian853/resilix-go/context"
 	"github.com/alfian853/resilix-go/retry"
@@ -10,14 +11,18 @@ import (
 type HalfOpenStateHandler struct {
 	DefaultStateHandler
 	DefaultStateHandlerExt
+
+	configuration *conf.Configuration
+	stateContainer StateContainer
 	timeEnd       int64
 	retryExecutor retry.RetryExecutor
 }
 
 func (stateHandler *HalfOpenStateHandler) Decorate(ctx *context.Context, stateContainer StateContainer) *HalfOpenStateHandler {
-	stateHandler.DefaultStateHandler.Decorate(ctx, stateHandler, stateHandler, stateContainer)
+	stateHandler.DefaultStateHandler.Decorate(ctx, stateHandler, stateHandler)
+	stateHandler.stateContainer = stateContainer
+	stateHandler.configuration = ctx.Config
 	stateHandler.timeEnd = util.GetTimestamp() + stateHandler.configuration.WaitDurationInOpenState
-
 	stateHandler.retryExecutor = retry.CreateRetryExecutor(ctx)
 	return stateHandler
 }
