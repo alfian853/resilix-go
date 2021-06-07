@@ -26,13 +26,13 @@ type DefaultSlidingWindowExt interface {
 
 type DefaultSlidingWindow struct {
 	SlidingWindow
-	swindowExt DefaultSlidingWindowExt
-	config *conf.Configuration
+	swindowExt   DefaultSlidingWindowExt
+	config       *conf.Configuration
 	observerLock sync.Mutex
-	observers []SwObserver
+	observers    []SwObserver
 }
 
-func (swindow *DefaultSlidingWindow) Decorate(swindowExt DefaultSlidingWindowExt,config *conf.Configuration)  {
+func (swindow *DefaultSlidingWindow) Decorate(swindowExt DefaultSlidingWindowExt, config *conf.Configuration) {
 	swindow.swindowExt = swindowExt
 	swindow.config = config
 	swindow.observerLock = sync.Mutex{}
@@ -75,11 +75,10 @@ func (swindow *DefaultSlidingWindow) RemoveObserver(observer SwObserver) {
 	}
 }
 
-
 func (swindow *DefaultSlidingWindow) AckAttempt(success bool) {
 
 	swindow.swindowExt.handleAckAttempt(success)
-	for i:=0; i < len(swindow.observers); i++ {
+	for i := 0; i < len(swindow.observers); i++ {
 		swindow.observers[i].NotifyOnAckAttempt(success)
 	}
 }

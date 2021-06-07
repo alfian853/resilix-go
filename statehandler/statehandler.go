@@ -20,10 +20,10 @@ type DefaultStateHandler struct {
 	StateHandler
 	executor.DefaultExecutorExt
 
-	defExecutor *executor.DefaultExecutor
+	defExecutor     *executor.DefaultExecutor
 	stateHandlerExt DefaultStateHandlerExt
-	context *context.Context
-	slidingWindow slidingwindow.SlidingWindow
+	context         *context.Context
+	slidingWindow   slidingwindow.SlidingWindow
 }
 
 func (defHandler *DefaultStateHandler) Decorate(
@@ -42,7 +42,7 @@ func (defHandler *DefaultStateHandler) ExecuteChecked(fun func() error) (execute
 	return defHandler.defExecutor.ExecuteChecked(fun)
 }
 
-func (defHandler *DefaultStateHandler) ExecuteCheckedSupplier(fun func()(interface{}, error)) (
+func (defHandler *DefaultStateHandler) ExecuteCheckedSupplier(fun func() (interface{}, error)) (
 	executed bool, result interface{}, err error) {
 	return defHandler.defExecutor.ExecuteCheckedSupplier(fun)
 }

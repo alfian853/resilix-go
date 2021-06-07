@@ -1,7 +1,6 @@
 package testutil
 
-
-func CheckedRunnable()func() error {
+func CheckedRunnable() func() error {
 	return func() error {
 		return nil
 	}
@@ -22,20 +21,20 @@ func ErrorCheckedRunnable(err error) func() error {
 	}
 }
 
-func PanicCheckedSupplier(any interface{}) func() (interface{},error) {
-	return func() (interface{},error) {
+func PanicCheckedSupplier(any interface{}) func() (interface{}, error) {
+	return func() (interface{}, error) {
 		panic(any)
 	}
 }
 
-func ErrorCheckedSupplier(err error) func() (interface{},error) {
-	return func() (interface{},error) {
+func ErrorCheckedSupplier(err error) func() (interface{}, error) {
+	return func() (interface{}, error) {
 		return nil, err
 	}
 }
 func TrueCheckedSupplier() func() (interface{}, error) {
-	return func() (interface{},error) {
-		return true,nil
+	return func() (interface{}, error) {
+		return true, nil
 	}
 }
 

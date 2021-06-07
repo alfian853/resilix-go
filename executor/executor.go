@@ -6,12 +6,12 @@ import (
 
 type Executor interface {
 	Execute(fun func()) bool
-	ExecuteSupplier(fun func() interface{}) (bool,interface{})
+	ExecuteSupplier(fun func() interface{}) (bool, interface{})
 }
 
 type CheckedExecutor interface {
 	ExecuteChecked(fun func() error) (bool, error)
-	ExecuteCheckedSupplier(fun func()(interface{}, error)) (bool, interface{}, error)
+	ExecuteCheckedSupplier(fun func() (interface{}, error)) (bool, interface{}, error)
 }
 
 type DefaultExecutorExt interface {
@@ -21,7 +21,7 @@ type DefaultExecutorExt interface {
 
 type DefaultExecutor struct {
 	CheckedExecutor
-	executorExt   DefaultExecutorExt
+	executorExt DefaultExecutorExt
 }
 
 func (defExecutor *DefaultExecutor) Decorate(defaultExecutorExt DefaultExecutorExt) *DefaultExecutor {
@@ -49,7 +49,7 @@ func (defExecutor *DefaultExecutor) ExecuteChecked(fun func() error) (executed b
 	return true, err
 }
 
-func (defExecutor *DefaultExecutor) ExecuteCheckedSupplier(fun func()(interface{}, error)) (
+func (defExecutor *DefaultExecutor) ExecuteCheckedSupplier(fun func() (interface{}, error)) (
 	executed bool, result interface{}, err error) {
 	defer func() {
 		if message := recover(); message != nil {

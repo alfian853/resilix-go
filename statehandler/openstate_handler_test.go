@@ -1,11 +1,11 @@
 package statehandler
 
 import (
-	"github.com/stretchr/testify/assert"
 	"github.com/alfian853/resilix-go/consts"
 	"github.com/alfian853/resilix-go/context"
 	"github.com/alfian853/resilix-go/slidingwindow"
 	"github.com/alfian853/resilix-go/testutil"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -62,7 +62,7 @@ func TestOpenState_shouldNotAck(t *testing.T) {
 	ctx.Config.WaitDurationInOpenState = 100000000
 	ctx.SWindow = slidingwindow.NewCountBasedSlidingWindow(ctx.Config)
 
-	for i:=0; i < ctx.Config.SlidingWindowMaxSize; i++ {
+	for i := 0; i < ctx.Config.SlidingWindowMaxSize; i++ {
 		ctx.SWindow.AckAttempt(true)
 	}
 
@@ -72,13 +72,13 @@ func TestOpenState_shouldNotAck(t *testing.T) {
 
 	initialError := ctx.SWindow.GetErrorRate()
 
- 	container := testStateContainer{}
+	container := testStateContainer{}
 
 	stateHandler := new(OpenStateHandler).Decorate(ctx, &container)
 
 	container.SetStateHandler(stateHandler)
 
-	for i:=0; i < ctx.Config.SlidingWindowMaxSize; i++ {
+	for i := 0; i < ctx.Config.SlidingWindowMaxSize; i++ {
 		ctx.SWindow.AckAttempt(false)
 	}
 

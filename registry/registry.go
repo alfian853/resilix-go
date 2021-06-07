@@ -6,7 +6,7 @@ import (
 	"github.com/alfian853/resilix-go/proxy"
 )
 
-var	executorMap = make(map[string]proxy.ResilixExecutor)
+var executorMap = make(map[string]proxy.ResilixExecutor)
 
 func GetResilixExecutor(contextKey string) proxy.ResilixExecutor {
 	val, ok := executorMap[contextKey]

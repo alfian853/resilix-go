@@ -26,13 +26,12 @@ func (retry *PessimisticRetryExecutor) Decorate(ctx *context.Context) *Pessimist
 	return retry
 }
 
-func(retry *PessimisticRetryExecutor) acquireAndUpdateRetryPermission() bool {
+func (retry *PessimisticRetryExecutor) acquireAndUpdateRetryPermission() bool {
 	return atomic.SwapInt32(retry.isAvailable, NotAvailable) == Available &&
 		retry.OptimisticRetryExecutor.AcquirePermission()
 }
 
-
-func (retry * PessimisticRetryExecutor) OnAfterExecution(success bool)  {
+func (retry *PessimisticRetryExecutor) OnAfterExecution(success bool) {
 
 	atomic.AddInt32(retry.numberOfAck, 1)
 	if !success {

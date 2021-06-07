@@ -17,7 +17,7 @@ func tryHardSuccess(t *testing.T, retryExecutor RetryExecutor, level int) {
 	}
 	executed, err := retryExecutor.ExecuteChecked(testutil.CheckedRunnable())
 	if !executed {
-		tryHardSuccess(t, retryExecutor, level + 1)
+		tryHardSuccess(t, retryExecutor, level+1)
 		return
 	}
 	assert.True(t, executed)
@@ -31,7 +31,7 @@ func tryHardFailed(t *testing.T, retryExecutor RetryExecutor, level int) {
 	randErrorMessage := testutil.RandPanicMessage()
 	executed, result, err := retryExecutor.ExecuteCheckedSupplier(testutil.PanicCheckedSupplier(randErrorMessage))
 	if !executed {
-		tryHardFailed(t, retryExecutor,  level + 1)
+		tryHardFailed(t, retryExecutor, level+1)
 		return
 	}
 	assert.True(t, executed)
@@ -39,7 +39,7 @@ func tryHardFailed(t *testing.T, retryExecutor RetryExecutor, level int) {
 	assert.Contains(t, err.Error(), randErrorMessage)
 }
 
-func TestPessimisticRetryRejected(t *testing.T){
+func TestPessimisticRetryRejected(t *testing.T) {
 	t.Deadline()
 	//init
 	ctx := context.NewContextDefault()
@@ -57,7 +57,7 @@ func TestPessimisticRetryRejected(t *testing.T){
 	minFailAck := int(ctx.Config.ErrorThreshold * float32(ctx.Config.NumberOfRetryInHalfOpenState))
 	maxSuccessAck := int(ctx.Config.NumberOfRetryInHalfOpenState) - minFailAck
 
-	for i:=0 ; i < maxSuccessAck; i++ {
+	for i := 0; i < maxSuccessAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
 			tryHardSuccess(t, retryExecutor, 1)
@@ -65,7 +65,7 @@ func TestPessimisticRetryRejected(t *testing.T){
 	}
 	wg.Wait()
 
-	for i:=0 ; i < minFailAck; i++ {
+	for i := 0; i < minFailAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
 			tryHardFailed(t, retryExecutor, 1)
@@ -92,17 +92,16 @@ func TestPessimisticRetryAcceptedCase(t *testing.T) {
 	assert.Equal(t, consts.RETRY_ON_GOING, retryExecutor.GetRetryState())
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
 
+	minSuccessAck := int(math.Ceil(float64((1-ctx.Config.ErrorThreshold)*float32(ctx.Config.NumberOfRetryInHalfOpenState))) + 1)
 
-	minSuccessAck := int(math.Ceil(float64((1 - ctx.Config.ErrorThreshold) * float32(ctx.Config.NumberOfRetryInHalfOpenState))) + 1)
-
-	for i:=0 ; i < minSuccessAck; i++ {
+	for i := 0; i < minSuccessAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
 			tryHardSuccess(t, retryExecutor, 1)
 		}, &wg)
 	}
 	wg.Wait()
-	for i:=0 ; i < int(ctx.Config.NumberOfRetryInHalfOpenState) - minSuccessAck; i++ {
+	for i := 0; i < int(ctx.Config.NumberOfRetryInHalfOpenState)-minSuccessAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
 			tryHardFailed(t, retryExecutor, 1)
@@ -111,7 +110,7 @@ func TestPessimisticRetryAcceptedCase(t *testing.T) {
 
 	wg.Wait()
 
-	assert.True(t,  retryExecutor.getErrorRate() < ctx.Config.ErrorThreshold)
-	assert.False(t,  retryExecutor.acquireAndUpdateRetryPermission())
+	assert.True(t, retryExecutor.getErrorRate() < ctx.Config.ErrorThreshold)
+	assert.False(t, retryExecutor.acquireAndUpdateRetryPermission())
 	assert.Equal(t, consts.RETRY_ACCEPTED, retryExecutor.GetRetryState())
 }

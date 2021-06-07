@@ -9,7 +9,7 @@ type CloseStateHandler struct {
 	DefaultStateHandler
 	DefaultStateHandlerExt
 
-	configuration *conf.Configuration
+	configuration  *conf.Configuration
 	stateContainer StateContainer
 }
 

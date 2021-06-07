@@ -1,16 +1,15 @@
 package retry
 
 import (
-	"github.com/stretchr/testify/assert"
-	"math"
 	"github.com/alfian853/resilix-go/consts"
 	"github.com/alfian853/resilix-go/context"
 	"github.com/alfian853/resilix-go/testutil"
 	"github.com/alfian853/resilix-go/util"
+	"github.com/stretchr/testify/assert"
+	"math"
 	"sync"
 	"testing"
 )
-
 
 func TestOptimisticRetryRejected(t *testing.T) {
 	//init
@@ -29,7 +28,7 @@ func TestOptimisticRetryRejected(t *testing.T) {
 	minFailAck := int(ctx.Config.ErrorThreshold * float32(ctx.Config.NumberOfRetryInHalfOpenState))
 	maxSuccessAck := int(ctx.Config.NumberOfRetryInHalfOpenState) - minFailAck
 
-	for i:=0 ; i < maxSuccessAck; i++ {
+	for i := 0; i < maxSuccessAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
 			executed, result, err := retryExecutor.ExecuteCheckedSupplier(testutil.TrueCheckedSupplier())
@@ -39,7 +38,7 @@ func TestOptimisticRetryRejected(t *testing.T) {
 		}, &wg)
 	}
 
-	for i:=0 ; i < minFailAck; i++ {
+	for i := 0; i < minFailAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
 			uniqError := testutil.RandErrorWithMessage()
@@ -70,9 +69,9 @@ func TestOptimisticRetryAcceptedCase(t *testing.T) {
 	assert.Equal(t, consts.RETRY_ON_GOING, retryExecutor.GetRetryState())
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
 
-	minSuccessAck := int(math.Ceil(float64((1 - ctx.Config.ErrorThreshold) * float32(ctx.Config.NumberOfRetryInHalfOpenState))) + 1)
+	minSuccessAck := int(math.Ceil(float64((1-ctx.Config.ErrorThreshold)*float32(ctx.Config.NumberOfRetryInHalfOpenState))) + 1)
 
-	for i:=0 ; i < minSuccessAck; i++ {
+	for i := 0; i < minSuccessAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
 			executed, err := retryExecutor.ExecuteChecked(testutil.CheckedRunnable())
@@ -81,7 +80,7 @@ func TestOptimisticRetryAcceptedCase(t *testing.T) {
 		}, &wg)
 	}
 	wg.Wait()
-	for i:=0 ; i < int(ctx.Config.NumberOfRetryInHalfOpenState) - minSuccessAck; i++ {
+	for i := 0; i < int(ctx.Config.NumberOfRetryInHalfOpenState)-minSuccessAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
 			randErrorMessage := testutil.RandPanicMessage()
@@ -94,7 +93,7 @@ func TestOptimisticRetryAcceptedCase(t *testing.T) {
 
 	wg.Wait()
 
-	assert.True(t,  retryExecutor.getErrorRate() < ctx.Config.ErrorThreshold)
+	assert.True(t, retryExecutor.getErrorRate() < ctx.Config.ErrorThreshold)
 	assert.False(t, retryExecutor.AcquirePermission())
 	assert.Equal(t, consts.RETRY_ACCEPTED, retryExecutor.GetRetryState())
 }

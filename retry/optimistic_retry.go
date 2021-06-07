@@ -13,9 +13,9 @@ import (
 type OptimisticRetryExecutor struct {
 	RetryExecutor
 	executor.DefaultExecutorExt
-	defExecutor *executor.DefaultExecutor
-	retryState *consts.RetryState
-	writeNORLock sync.Mutex
+	defExecutor   *executor.DefaultExecutor
+	retryState    *consts.RetryState
+	writeNORLock  sync.Mutex
 	numberOfRetry *int32
 	numberOfAck   *int32
 	numberOfFail  *int32
@@ -57,7 +57,7 @@ func (retry *OptimisticRetryExecutor) ExecuteChecked(fun func() error) (executed
 	return retry.defExecutor.ExecuteChecked(fun)
 }
 
-func (retry *OptimisticRetryExecutor) ExecuteCheckedSupplier(fun func()(interface{}, error)) (
+func (retry *OptimisticRetryExecutor) ExecuteCheckedSupplier(fun func() (interface{}, error)) (
 	executed bool, result interface{}, err error) {
 	return retry.defExecutor.ExecuteCheckedSupplier(fun)
 }
@@ -77,7 +77,7 @@ func (retry *OptimisticRetryExecutor) AcquirePermission() bool {
 	return true
 }
 
-func (retry *OptimisticRetryExecutor) OnAfterExecution(success bool)  {
+func (retry *OptimisticRetryExecutor) OnAfterExecution(success bool) {
 
 	atomic.AddInt32(retry.numberOfAck, 1)
 	if !success {

@@ -1,16 +1,16 @@
 package slidingwindow
 
 import (
-	"github.com/stretchr/testify/assert"
 	conf "github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/testutil"
 	"github.com/alfian853/resilix-go/util"
+	"github.com/stretchr/testify/assert"
 	"sync"
 	"testing"
 	"time"
 )
 
-const(
+const (
 	windowTimeRange = 550
 )
 
@@ -21,19 +21,19 @@ func initTimeBasedSlidingWindow() *TimeBasedSlidingWindow {
 }
 
 //testcase: fire with 25 random ack followed by 10(70% success) ack in arbitrary order
-func TestCompleteCase(t *testing.T){
+func TestCompleteCase(t *testing.T) {
 	twindow := initTimeBasedSlidingWindow()
 	var wg sync.WaitGroup
 	assert.Equal(t, float32(0.0), twindow.GetErrorRate())
 
-	for i := 0 ; i < 25; i++ {
+	for i := 0; i < 25; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
 			twindow.AckAttempt(testutil.RandBool())
 		}, &wg)
 	}
 	wg.Wait()
-	time.Sleep((windowTimeRange+100) * time.Millisecond)
+	time.Sleep((windowTimeRange + 100) * time.Millisecond)
 
 	nSuccess := 7
 	nFailure := 3

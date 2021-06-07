@@ -10,7 +10,7 @@ func CreateRetryExecutor(ctx *context.Context) RetryExecutor {
 	case consts.RETRY_OPTIMISTIC:
 		return new(OptimisticRetryExecutor).Decorate(ctx)
 	case consts.RETRY_PESSIMISTIC:
-		return 	new(PessimisticRetryExecutor).Decorate(ctx)
+		return new(PessimisticRetryExecutor).Decorate(ctx)
 	}
 
 	return nil

@@ -24,5 +24,3 @@ func (data *PanicData) String() string {
 func (data *PanicData) GoString() string {
 	return data.Message
 }
-
-

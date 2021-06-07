@@ -10,9 +10,9 @@ type OpenStateHandler struct {
 	DefaultStateHandler
 	DefaultStateHandlerExt
 
-	configuration *conf.Configuration
+	configuration  *conf.Configuration
 	stateContainer StateContainer
-	timeEnd int64
+	timeEnd        int64
 }
 
 func (stateHandler *OpenStateHandler) Decorate(ctx *context.Context, stateContainer StateContainer) *OpenStateHandler {

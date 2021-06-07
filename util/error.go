@@ -13,28 +13,28 @@ func (e *UnhandledError) Error() string {
 
 	switch e.Message.(type) {
 	case error:
-		return fmt.Sprintf(preFormat + ": %s\n", e.Message.(error).Error())
+		return fmt.Sprintf(preFormat+": %s\n", e.Message.(error).Error())
 	case string:
-		return fmt.Sprintf(preFormat + ": %s\n", e.Message.(string))
+		return fmt.Sprintf(preFormat+": %s\n", e.Message.(string))
 	}
 
 	var args []interface{}
 	canBeString := false
-	if _,ok := e.Message.(fmt.Stringer); ok {
+	if _, ok := e.Message.(fmt.Stringer); ok {
 		canBeString = true
 		preFormat += ", String(): %s"
 		args = append(args, e.Message.(fmt.Stringer).String())
 	}
 
-	if _,ok := e.Message.(fmt.GoStringer); ok {
+	if _, ok := e.Message.(fmt.GoStringer); ok {
 		canBeString = true
 		preFormat += ", GoString(): %s"
 		args = append(args, e.Message.(fmt.Stringer).String())
 	}
 
 	if canBeString {
-		return fmt.Sprintf(preFormat + "\n", args)
+		return fmt.Sprintf(preFormat+"\n", args)
 	}
 
-	return fmt.Sprintf(preFormat + ", %%#v: %#v\n", e.Message)
+	return fmt.Sprintf(preFormat+", %%#v: %#v\n", e.Message)
 }

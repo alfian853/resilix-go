@@ -25,7 +25,7 @@ func NewResilixProxy(ctx *context.Context) *ResilixProxy {
 }
 
 // StateContainer
-func (proxy *ResilixProxy) SetStateHandler(stateHandler statehandler.StateHandler)  {
+func (proxy *ResilixProxy) SetStateHandler(stateHandler statehandler.StateHandler) {
 	proxy.stateHandler = stateHandler
 }
 
@@ -41,13 +41,11 @@ func (proxy *ResilixProxy) ExecuteChecked(fun func() error) (bool, error) {
 	return proxy.stateHandler.ExecuteChecked(fun)
 }
 
-
-func (proxy *ResilixProxy) ExecuteCheckedSupplier(fun func()(interface{}, error)) (bool, interface{}, error) {
+func (proxy *ResilixProxy) ExecuteCheckedSupplier(fun func() (interface{}, error)) (bool, interface{}, error) {
 	proxy.stateHandler.EvaluateState()
 
 	return proxy.stateHandler.ExecuteCheckedSupplier(fun)
 }
-
 
 // Executor
 func (proxy *ResilixProxy) Execute(fun func()) bool {
@@ -63,9 +61,9 @@ func (proxy *ResilixProxy) Execute(fun func()) bool {
 	return isExecuted
 }
 
-func (proxy *ResilixProxy) ExecuteSupplier(fun func() interface{}) (bool, interface{})  {
+func (proxy *ResilixProxy) ExecuteSupplier(fun func() interface{}) (bool, interface{}) {
 
-	isExecuted, result, err := proxy.ExecuteCheckedSupplier(func() (interface{},error) {
+	isExecuted, result, err := proxy.ExecuteCheckedSupplier(func() (interface{}, error) {
 		return fun(), nil
 	})
 
@@ -75,5 +73,3 @@ func (proxy *ResilixProxy) ExecuteSupplier(fun func() interface{}) (bool, interf
 
 	return isExecuted, result
 }
-
-

@@ -8,7 +8,6 @@ const (
 	SECONDS_IN_MS = 1000
 )
 
-
 type Configuration struct {
 	SlidingWindowStrategy        consts.SwStrategy
 	RetryStrategy                consts.RetryStrategy

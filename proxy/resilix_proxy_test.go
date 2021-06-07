@@ -1,11 +1,11 @@
 package proxy
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/alfian853/resilix-go/context"
 	"github.com/alfian853/resilix-go/statehandler"
 	"github.com/alfian853/resilix-go/testutil"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -25,12 +25,12 @@ func (mock *stateHandlerMock) ExecuteChecked(fun func() error) (executed bool, e
 	return args.Bool(0), args.Error(1)
 }
 
-func (mock *stateHandlerMock) ExecuteCheckedSupplier(fun func()(interface{}, error)) (executed bool, result interface{}, err error) {
+func (mock *stateHandlerMock) ExecuteCheckedSupplier(fun func() (interface{}, error)) (executed bool, result interface{}, err error) {
 	args := mock.Called(fun)
-	return args.Bool(0), args.Get(1),args.Error(2)
+	return args.Bool(0), args.Get(1), args.Error(2)
 }
 
-func getMockedStateHandler(isRuntimePanic bool)(positiveMock *stateHandlerMock, negativeMock *stateHandlerMock){
+func getMockedStateHandler(isRuntimePanic bool) (positiveMock *stateHandlerMock, negativeMock *stateHandlerMock) {
 	positiveMock = new(stateHandlerMock)
 	negativeMock = new(stateHandlerMock)
 
@@ -71,7 +71,7 @@ func TestResilixProxy_executeChecked(t *testing.T) {
 
 	assert.Same(t, positiveStateHandler, proxy.GetStateHandler())
 
-	positiveStateHandler.AssertNumberOfCalls(t, "EvaluateState",3)
+	positiveStateHandler.AssertNumberOfCalls(t, "EvaluateState", 3)
 	positiveStateHandler.AssertCalled(t, "ExecuteChecked", mock.Anything)
 	positiveStateHandler.AssertCalled(t, "ExecuteCheckedSupplier", mock.Anything)
 
@@ -112,7 +112,7 @@ func TestResilixProxy_executeUnsafe(t *testing.T) {
 
 	assert.Same(t, positiveStateHandler, proxy.GetStateHandler())
 
-	positiveStateHandler.AssertNumberOfCalls(t, "EvaluateState",3)
+	positiveStateHandler.AssertNumberOfCalls(t, "EvaluateState", 3)
 	positiveStateHandler.AssertCalled(t, "ExecuteChecked", mock.Anything)
 	positiveStateHandler.AssertCalled(t, "ExecuteCheckedSupplier", mock.Anything)
 
@@ -132,7 +132,3 @@ func TestResilixProxy_executeUnsafe(t *testing.T) {
 	negativeStateHandler.AssertCalled(t, "ExecuteCheckedSupplier", mock.Anything)
 	negativeStateHandler.AssertNumberOfCalls(t, "EvaluateState", 2)
 }
-
-
-
-

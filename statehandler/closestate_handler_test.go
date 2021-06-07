@@ -1,13 +1,13 @@
 package statehandler
 
 import (
-	"github.com/stretchr/testify/assert"
-	"math"
 	"github.com/alfian853/resilix-go/consts"
 	"github.com/alfian853/resilix-go/context"
 	"github.com/alfian853/resilix-go/slidingwindow"
 	"github.com/alfian853/resilix-go/testutil"
 	"github.com/alfian853/resilix-go/util"
+	"github.com/stretchr/testify/assert"
+	"math"
 	"sync"
 	"testing"
 )
@@ -29,11 +29,11 @@ func TestCloseStateHandler_minCallToEvaluate(t *testing.T) {
 
 	container.SetStateHandler(stateHandler)
 
-	for i:=0; i < ctx.Config.MinimumCallToEvaluate-1; i++ {
+	for i := 0; i < ctx.Config.MinimumCallToEvaluate-1; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
 			uniqPanic := testutil.RandPanicMessage()
-			executed,result,err := stateHandler.ExecuteCheckedSupplier(testutil.PanicCheckedSupplier(uniqPanic))
+			executed, result, err := stateHandler.ExecuteCheckedSupplier(testutil.PanicCheckedSupplier(uniqPanic))
 			assert.True(t, executed)
 			assert.Nil(t, result)
 			assert.Contains(t, err.Error(), uniqPanic)
@@ -43,7 +43,7 @@ func TestCloseStateHandler_minCallToEvaluate(t *testing.T) {
 	assert.Equal(t, stateHandler, container.GetStateHandler())
 
 	uniqPanic := testutil.RandPanicMessage()
-	executed,err := stateHandler.ExecuteChecked(testutil.PanicCheckedRunnable(&testutil.IntendedPanic{Message: uniqPanic}))
+	executed, err := stateHandler.ExecuteChecked(testutil.PanicCheckedRunnable(&testutil.IntendedPanic{Message: uniqPanic}))
 	assert.True(t, executed)
 	assert.Contains(t, err.Error(), uniqPanic)
 
@@ -68,10 +68,10 @@ func TestCloseStateHandler_stillCloseAfterNumberOfAck(t *testing.T) {
 
 	container.SetStateHandler(stateHandler)
 
-	for i:=0; i < ctx.Config.SlidingWindowMaxSize; i++ {
+	for i := 0; i < ctx.Config.SlidingWindowMaxSize; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			executed,err := stateHandler.ExecuteChecked(testutil.CheckedRunnable())
+			executed, err := stateHandler.ExecuteChecked(testutil.CheckedRunnable())
 			assert.True(t, executed)
 			assert.Nil(t, err)
 		}, &wg)
@@ -80,11 +80,11 @@ func TestCloseStateHandler_stillCloseAfterNumberOfAck(t *testing.T) {
 	assert.Equal(t, stateHandler, container.GetStateHandler())
 
 	safeErrorAttempt := int(math.Ceil(float64(ctx.Config.SlidingWindowMaxSize)*float64(ctx.Config.ErrorThreshold)) - 1)
-	for i:=0; i < safeErrorAttempt; i++ {
+	for i := 0; i < safeErrorAttempt; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
 			uniqPanic := testutil.RandErrorWithMessage()
-			executed,result,err := stateHandler.ExecuteCheckedSupplier(testutil.ErrorCheckedSupplier(uniqPanic))
+			executed, result, err := stateHandler.ExecuteCheckedSupplier(testutil.ErrorCheckedSupplier(uniqPanic))
 			assert.True(t, executed)
 			assert.Nil(t, result)
 			assert.Contains(t, err.Error(), uniqPanic.Message)
@@ -93,7 +93,6 @@ func TestCloseStateHandler_stillCloseAfterNumberOfAck(t *testing.T) {
 	wg.Wait()
 	assert.Equal(t, stateHandler, container.GetStateHandler())
 }
-
 
 func TestCloseStateHandler_moveToOpenState(t *testing.T) {
 	//init
@@ -112,10 +111,10 @@ func TestCloseStateHandler_moveToOpenState(t *testing.T) {
 
 	container.SetStateHandler(stateHandler)
 
-	for i:=0; i < ctx.Config.SlidingWindowMaxSize; i++ {
+	for i := 0; i < ctx.Config.SlidingWindowMaxSize; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			executed,err := stateHandler.ExecuteChecked(testutil.CheckedRunnable())
+			executed, err := stateHandler.ExecuteChecked(testutil.CheckedRunnable())
 			assert.True(t, executed)
 			assert.Nil(t, err)
 		}, &wg)
@@ -123,13 +122,12 @@ func TestCloseStateHandler_moveToOpenState(t *testing.T) {
 	wg.Wait()
 	assert.Equal(t, stateHandler, container.GetStateHandler())
 
-
-	errorAttempt := int(math.Ceil(float64(ctx.Config.SlidingWindowMaxSize)*float64(1 - ctx.Config.ErrorThreshold)))
-	for i:=0; i < errorAttempt; i++ {
+	errorAttempt := int(math.Ceil(float64(ctx.Config.SlidingWindowMaxSize) * float64(1-ctx.Config.ErrorThreshold)))
+	for i := 0; i < errorAttempt; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
 			uniqStringer := testutil.RandStringer()
-			executed,result,err := stateHandler.ExecuteCheckedSupplier(testutil.PanicCheckedSupplier(uniqStringer))
+			executed, result, err := stateHandler.ExecuteCheckedSupplier(testutil.PanicCheckedSupplier(uniqStringer))
 			assert.True(t, executed)
 			assert.Nil(t, result)
 			assert.Contains(t, err.Error(), uniqStringer.Message)
@@ -140,4 +138,3 @@ func TestCloseStateHandler_moveToOpenState(t *testing.T) {
 	assert.NotEqual(t, stateHandler, container.GetStateHandler())
 	assert.IsType(t, &OpenStateHandler{}, container.GetStateHandler())
 }
-

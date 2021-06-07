@@ -1,10 +1,10 @@
 package slidingwindow
 
 import (
-	"github.com/oleiade/lane"
 	conf "github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/consts"
 	"github.com/alfian853/resilix-go/util"
+	"github.com/oleiade/lane"
 	"sync/atomic"
 )
 

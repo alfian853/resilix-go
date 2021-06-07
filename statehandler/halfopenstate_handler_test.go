@@ -1,12 +1,12 @@
 package statehandler
 
 import (
-	"github.com/stretchr/testify/assert"
 	"github.com/alfian853/resilix-go/consts"
 	"github.com/alfian853/resilix-go/context"
 	"github.com/alfian853/resilix-go/slidingwindow"
 	"github.com/alfian853/resilix-go/testutil"
 	"github.com/alfian853/resilix-go/util"
+	"github.com/stretchr/testify/assert"
 	"sync"
 	"testing"
 )
@@ -33,10 +33,10 @@ func TestHalfOpenState_retryAndSuccess(t *testing.T) {
 	// shouldSuccessAttempt is 3
 	shouldSuccessAttempt := 3
 
-	for i:=0; i < shouldSuccessAttempt; i++ {
+	for i := 0; i < shouldSuccessAttempt; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			executed,result,err := stateHandler.ExecuteCheckedSupplier(testutil.TrueCheckedSupplier())
+			executed, result, err := stateHandler.ExecuteCheckedSupplier(testutil.TrueCheckedSupplier())
 			assert.True(t, executed)
 			assert.True(t, result.(bool))
 			assert.Nil(t, err)
@@ -45,11 +45,11 @@ func TestHalfOpenState_retryAndSuccess(t *testing.T) {
 	wg.Wait()
 	assert.Equal(t, stateHandler, container.GetStateHandler())
 
-	for i:=0; i < maxAcceptableError; i++ {
+	for i := 0; i < maxAcceptableError; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
 			uniqueError := testutil.RandPanicMessage()
-			executed,err := stateHandler.ExecuteChecked(testutil.PanicCheckedRunnable(uniqueError))
+			executed, err := stateHandler.ExecuteChecked(testutil.PanicCheckedRunnable(uniqueError))
 			assert.True(t, executed)
 			assert.Contains(t, err.Error(), uniqueError)
 		}, &wg)
@@ -81,10 +81,10 @@ func TestHalfOpenState_retryAndFailed(t *testing.T) {
 	minRequiredError := 3
 	shouldSuccessAttempt := 3
 
-	for i:=0; i < shouldSuccessAttempt; i++ {
+	for i := 0; i < shouldSuccessAttempt; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			executed,result,err := stateHandler.ExecuteCheckedSupplier(testutil.TrueCheckedSupplier())
+			executed, result, err := stateHandler.ExecuteCheckedSupplier(testutil.TrueCheckedSupplier())
 			assert.True(t, executed)
 			assert.True(t, result.(bool))
 			assert.Nil(t, err)
@@ -94,11 +94,11 @@ func TestHalfOpenState_retryAndFailed(t *testing.T) {
 	wg.Wait()
 	assert.Equal(t, stateHandler, container.GetStateHandler())
 
-	for i:=0; i < minRequiredError; i++ {
+	for i := 0; i < minRequiredError; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
 			uniqueError := testutil.RandPanicMessage()
-			executed,err := stateHandler.ExecuteChecked(testutil.PanicCheckedRunnable(uniqueError))
+			executed, err := stateHandler.ExecuteChecked(testutil.PanicCheckedRunnable(uniqueError))
 			assert.True(t, executed)
 			assert.Contains(t, err.Error(), uniqueError)
 		}, &wg)
@@ -106,7 +106,7 @@ func TestHalfOpenState_retryAndFailed(t *testing.T) {
 	}
 	wg.Wait()
 	uniqueError := testutil.RandPanicMessage()
-	executed,err := stateHandler.ExecuteChecked(testutil.PanicCheckedRunnable(uniqueError))
+	executed, err := stateHandler.ExecuteChecked(testutil.PanicCheckedRunnable(uniqueError))
 	assert.False(t, executed)
 	assert.Nil(t, err)
 

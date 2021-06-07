@@ -1,20 +1,19 @@
 package slidingwindow
 
 import (
-	"github.com/oleiade/lane"
 	conf "github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/consts"
 	"github.com/alfian853/resilix-go/util"
+	"github.com/oleiade/lane"
 	"sync/atomic"
 )
 
-
 type TimeBasedSlidingWindow struct {
 	DefaultSlidingWindow
-	lock        consts.SwLock
-	config      *conf.Configuration
-	successQue  *lane.Deque
-	failureQue  *lane.Deque
+	lock       consts.SwLock
+	config     *conf.Configuration
+	successQue *lane.Deque
+	failureQue *lane.Deque
 }
 
 func NewTimeBasedSlidingWindow(config *conf.Configuration) *TimeBasedSlidingWindow {
@@ -52,7 +51,7 @@ func (window *TimeBasedSlidingWindow) getErrorRateAfterMinCallSatisfied() float3
 
 	successSize, failureSize :=
 		window.successQue.Size(), window.failureQue.Size()
-	return float32(failureSize) / float32(successSize +failureSize)
+	return float32(failureSize) / float32(successSize+failureSize)
 }
 
 func (window *TimeBasedSlidingWindow) Clear() {
@@ -70,11 +69,11 @@ func (window *TimeBasedSlidingWindow) examineAttemptWindow() {
 
 	if atomic.SwapInt32(window.lock, consts.SwLock_Clearing) < consts.SwLock_Clearing {
 		for !window.successQue.Empty() &&
-			window.successQue.First().(int64) < util.GetTimestamp() -window.config.SlidingWindowTimeRange {
+			window.successQue.First().(int64) < util.GetTimestamp()-window.config.SlidingWindowTimeRange {
 			window.successQue.Shift()
 		}
 		for !window.failureQue.Empty() &&
-			window.failureQue.First().(int64) < util.GetTimestamp() -window.config.SlidingWindowTimeRange {
+			window.failureQue.First().(int64) < util.GetTimestamp()-window.config.SlidingWindowTimeRange {
 			window.failureQue.Shift()
 		}
 

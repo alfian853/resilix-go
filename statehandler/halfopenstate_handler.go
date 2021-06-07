@@ -12,10 +12,10 @@ type HalfOpenStateHandler struct {
 	DefaultStateHandler
 	DefaultStateHandlerExt
 
-	configuration *conf.Configuration
+	configuration  *conf.Configuration
 	stateContainer StateContainer
-	timeEnd       int64
-	retryExecutor retry.RetryExecutor
+	timeEnd        int64
+	retryExecutor  retry.RetryExecutor
 }
 
 func (stateHandler *HalfOpenStateHandler) Decorate(ctx *context.Context, stateContainer StateContainer) *HalfOpenStateHandler {
@@ -27,14 +27,14 @@ func (stateHandler *HalfOpenStateHandler) Decorate(ctx *context.Context, stateCo
 	return stateHandler
 }
 
-func(stateHandler *HalfOpenStateHandler) ExecuteChecked(fun func() error) (executed bool, err error) {
+func (stateHandler *HalfOpenStateHandler) ExecuteChecked(fun func() error) (executed bool, err error) {
 	defer func() {
 		stateHandler.EvaluateState()
 	}()
 	return stateHandler.retryExecutor.ExecuteChecked(fun)
 }
 
-func (stateHandler *HalfOpenStateHandler) ExecuteCheckedSupplier(fun func()(interface{}, error)) (
+func (stateHandler *HalfOpenStateHandler) ExecuteCheckedSupplier(fun func() (interface{}, error)) (
 	executed bool, result interface{}, err error) {
 	defer func() {
 		stateHandler.EvaluateState()
@@ -63,4 +63,3 @@ func (stateHandler *HalfOpenStateHandler) EvaluateState() {
 		break
 	}
 }
-

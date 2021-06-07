@@ -6,6 +6,6 @@ const (
 
 type mockObserver struct {
 	SwObserver
-	name string
+	name  string
 	count *int32
 }

@@ -15,4 +15,3 @@ func CreateSlidingWindow(conf *conf.Configuration) SlidingWindow {
 
 	return nil
 }
-
