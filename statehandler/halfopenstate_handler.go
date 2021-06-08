@@ -10,7 +10,6 @@ import (
 
 type HalfOpenStateHandler struct {
 	DefaultStateHandler
-	DefaultStateHandlerExt
 
 	configuration  *conf.Configuration
 	stateContainer StateContainer
@@ -42,7 +41,7 @@ func (stateHandler *HalfOpenStateHandler) ExecuteCheckedSupplier(fun func() (int
 	return stateHandler.retryExecutor.ExecuteCheckedSupplier(fun)
 }
 
-func (stateHandler *HalfOpenStateHandler) acquirePermission() bool {
+func (stateHandler *HalfOpenStateHandler) AcquirePermission() bool {
 	return false
 }
 

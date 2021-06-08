@@ -50,38 +50,3 @@ func TestOpenState_movingStateAfterWaitingDurationIsSatisfied(t *testing.T) {
 
 	assert.IsType(t, &HalfOpenStateHandler{}, container.GetStateHandler())
 }
-
-func TestOpenState_shouldNotAck(t *testing.T) {
-	//init
-	ctx := context.NewContextDefault()
-	ctx.Config.SlidingWindowMaxSize = 10
-	ctx.Config.ErrorThreshold = 0.5
-	ctx.Config.RetryStrategy = consts.RETRY_OPTIMISTIC
-	ctx.Config.MinimumCallToEvaluate = 3
-	ctx.Config.NumberOfRetryInHalfOpenState = 10
-	ctx.Config.WaitDurationInOpenState = 100000000
-	ctx.SWindow = slidingwindow.NewCountBasedSlidingWindow(ctx.Config)
-
-	for i := 0; i < ctx.Config.SlidingWindowMaxSize; i++ {
-		ctx.SWindow.AckAttempt(true)
-	}
-
-	for ctx.SWindow.GetErrorRate() < ctx.SWindow.GetErrorRate() {
-		ctx.SWindow.AckAttempt(false)
-	}
-
-	initialError := ctx.SWindow.GetErrorRate()
-
-	container := testStateContainer{}
-
-	stateHandler := new(OpenStateHandler).Decorate(ctx, &container)
-
-	container.SetStateHandler(stateHandler)
-
-	for i := 0; i < ctx.Config.SlidingWindowMaxSize; i++ {
-		ctx.SWindow.AckAttempt(false)
-	}
-
-	assert.Equal(t, stateHandler, container.GetStateHandler())
-	assert.Equal(t, initialError, stateHandler.slidingWindow.GetErrorRate())
-}

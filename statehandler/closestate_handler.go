@@ -7,7 +7,6 @@ import (
 
 type CloseStateHandler struct {
 	DefaultStateHandler
-	DefaultStateHandlerExt
 
 	configuration  *conf.Configuration
 	stateContainer StateContainer
@@ -21,7 +20,7 @@ func (stateHandler *CloseStateHandler) Decorate(ctx *context.Context, stateConta
 	return stateHandler
 }
 
-func (stateHandler *CloseStateHandler) acquirePermission() bool {
+func (stateHandler *CloseStateHandler) AcquirePermission() bool {
 	return stateHandler.slidingWindow.GetErrorRate() < stateHandler.configuration.ErrorThreshold
 }
 

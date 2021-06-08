@@ -8,7 +8,6 @@ import (
 
 type OpenStateHandler struct {
 	DefaultStateHandler
-	DefaultStateHandlerExt
 
 	configuration  *conf.Configuration
 	stateContainer StateContainer
@@ -24,7 +23,7 @@ func (stateHandler *OpenStateHandler) Decorate(ctx *context.Context, stateContai
 	return stateHandler
 }
 
-func (stateHandler *OpenStateHandler) acquirePermission() bool {
+func (stateHandler *OpenStateHandler) AcquirePermission() bool {
 	stateHandler.EvaluateState()
 	return false
 }
