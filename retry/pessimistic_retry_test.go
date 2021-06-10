@@ -6,32 +6,35 @@ import (
 	"github.com/alfian853/resilix-go/testutil"
 	"github.com/alfian853/resilix-go/util"
 	"github.com/stretchr/testify/assert"
-	"math"
 	"sync"
 	"testing"
 )
 
-func tryHardSuccess(t *testing.T, retryExecutor RetryExecutor, level int) {
+func tryHardSuccess(t *testing.T, retryExecutor RetryExecutor, level int, isRecursive *bool) {
 	if level > 20 {
 		return
 	}
 	executed, err := retryExecutor.ExecuteChecked(testutil.CheckedRunnable())
 	if !executed {
-		tryHardSuccess(t, retryExecutor, level+1)
+		*isRecursive = true
+		testutil.RandSleep(1, 5)
+		tryHardSuccess(t, retryExecutor, level+1, isRecursive)
 		return
 	}
 	assert.True(t, executed)
 	assert.Nil(t, err)
 }
 
-func tryHardFailed(t *testing.T, retryExecutor RetryExecutor, level int) {
+func tryHardFailed(t *testing.T, retryExecutor RetryExecutor, level int, isRecursive *bool) {
 	if level > 20 {
 		return
 	}
 	randErrorMessage := testutil.RandPanicMessage()
 	executed, result, err := retryExecutor.ExecuteCheckedSupplier(testutil.PanicCheckedSupplier(randErrorMessage))
 	if !executed {
-		tryHardFailed(t, retryExecutor, level+1)
+		*isRecursive = true
+		testutil.RandSleep(1, 5)
+		tryHardFailed(t, retryExecutor, level+1, isRecursive)
 		return
 	}
 	assert.True(t, executed)
@@ -39,13 +42,13 @@ func tryHardFailed(t *testing.T, retryExecutor RetryExecutor, level int) {
 	assert.Contains(t, err.Error(), randErrorMessage)
 }
 
+
 func TestPessimisticRetryRejected(t *testing.T) {
-	t.Deadline()
 	//init
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 50
 	ctx.Config.ErrorThreshold = 0.3
-	ctx.Config.NumberOfRetryInHalfOpenState = 100
+	ctx.Config.NumberOfRetryInHalfOpenState = 1000
 	ctx.Config.RetryStrategy = consts.Retry_Pessimistic
 	var wg sync.WaitGroup
 
@@ -54,13 +57,13 @@ func TestPessimisticRetryRejected(t *testing.T) {
 	assert.Equal(t, consts.RETRY_ON_GOING, retryExecutor.GetRetryState())
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
 
-	minFailAck := int(ctx.Config.ErrorThreshold * float32(ctx.Config.NumberOfRetryInHalfOpenState))
-	maxSuccessAck := int(ctx.Config.NumberOfRetryInHalfOpenState) - minFailAck
-
+	minFailAck := 300
+	maxSuccessAck := 700
+	hasRecursiveCall := false
 	for i := 0; i < maxSuccessAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			tryHardSuccess(t, retryExecutor, 1)
+			tryHardSuccess(t, retryExecutor, 1, &hasRecursiveCall)
 		}, &wg)
 	}
 	wg.Wait()
@@ -68,22 +71,23 @@ func TestPessimisticRetryRejected(t *testing.T) {
 	for i := 0; i < minFailAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			tryHardFailed(t, retryExecutor, 1)
+			tryHardFailed(t, retryExecutor, 1, &hasRecursiveCall)
 		}, &wg)
 	}
 	wg.Wait()
+	assert.True(t, hasRecursiveCall)
 	assert.True(t, retryExecutor.getErrorRate() >= ctx.Config.ErrorThreshold)
-	assert.False(t, retryExecutor.acquireAndUpdateRetryPermission())
+	assert.False(t, retryExecutor.AcquirePermission())
 	assert.Equal(t, consts.RETRY_REJECTED, retryExecutor.GetRetryState())
 	assert.Equal(t, ctx.Config.NumberOfRetryInHalfOpenState, *retryExecutor.numberOfAck)
 }
 
-func TestPessimisticRetryAcceptedCase(t *testing.T) {
+func TestPessimisticRetryAccepted(t *testing.T) {
 	//init
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 50
 	ctx.Config.ErrorThreshold = 0.8
-	ctx.Config.NumberOfRetryInHalfOpenState = 100
+	ctx.Config.NumberOfRetryInHalfOpenState = 1000
 	ctx.Config.RetryStrategy = consts.Retry_Pessimistic
 	var wg sync.WaitGroup
 
@@ -92,25 +96,28 @@ func TestPessimisticRetryAcceptedCase(t *testing.T) {
 	assert.Equal(t, consts.RETRY_ON_GOING, retryExecutor.GetRetryState())
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
 
-	minSuccessAck := int(math.Ceil(float64((1-ctx.Config.ErrorThreshold)*float32(ctx.Config.NumberOfRetryInHalfOpenState))) + 1)
+	minSuccessAck := 801
+	maxFailureAck := 199
+	hasRecursiveCall := false
 
 	for i := 0; i < minSuccessAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			tryHardSuccess(t, retryExecutor, 1)
+			tryHardSuccess(t, retryExecutor, 1, &hasRecursiveCall)
 		}, &wg)
 	}
 	wg.Wait()
-	for i := 0; i < int(ctx.Config.NumberOfRetryInHalfOpenState)-minSuccessAck; i++ {
+	for i := 0; i < maxFailureAck; i++ {
 		wg.Add(1)
 		util.AsyncWgRunner(func() {
-			tryHardFailed(t, retryExecutor, 1)
+			tryHardFailed(t, retryExecutor, 1, &hasRecursiveCall)
 		}, &wg)
 	}
 
 	wg.Wait()
 
+	assert.True(t, hasRecursiveCall)
 	assert.True(t, retryExecutor.getErrorRate() < ctx.Config.ErrorThreshold)
-	assert.False(t, retryExecutor.acquireAndUpdateRetryPermission())
+	assert.False(t, retryExecutor.AcquirePermission())
 	assert.Equal(t, consts.RETRY_ACCEPTED, retryExecutor.GetRetryState())
 }
