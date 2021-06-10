@@ -1,4 +1,4 @@
-package registry
+package resilix
 
 import (
 	conf "github.com/alfian853/resilix-go/config"
@@ -8,7 +8,7 @@ import (
 
 var executorMap = make(map[string]proxy.ResilixExecutor)
 
-func GetResilixExecutor(contextKey string) proxy.ResilixExecutor {
+func Go(contextKey string) proxy.ResilixExecutor {
 	val, ok := executorMap[contextKey]
 
 	if ok {
