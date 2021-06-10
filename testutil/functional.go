@@ -15,9 +15,9 @@ func PanicCheckedRunnable(any interface{}) func() error {
 	}
 }
 
-func ErrorCheckedRunnable(err error) func() error {
-	return func() error {
-		return err
+func PanicRunnable(any interface{}) func() {
+	return func() {
+		panic(any)
 	}
 }
 

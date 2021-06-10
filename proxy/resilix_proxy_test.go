@@ -103,17 +103,17 @@ func TestResilixProxy_executeUnsafe(t *testing.T) {
 
 	proxy.SetStateHandler(positiveStateHandler)
 
-	executed := proxy.Execute(testutil.DoNothingRunnable())
-	assert.True(t, executed)
-
 	executed, result := proxy.ExecuteSupplier(testutil.TrueSupplier())
+	assert.True(t, executed)
+	assert.True(t, result.(bool))
+
+	executed, result = proxy.ExecuteSupplier(testutil.TrueSupplier())
 	assert.True(t, executed)
 	assert.True(t, result.(bool))
 
 	assert.Same(t, positiveStateHandler, proxy.GetStateHandler())
 
 	positiveStateHandler.AssertNumberOfCalls(t, "EvaluateState", 3)
-	positiveStateHandler.AssertCalled(t, "ExecuteChecked", mock.Anything)
 	positiveStateHandler.AssertCalled(t, "ExecuteCheckedSupplier", mock.Anything)
 
 	positiveStateHandler.On("EvaluateState").Run(func(args mock.Arguments) {
@@ -124,11 +124,11 @@ func TestResilixProxy_executeUnsafe(t *testing.T) {
 	assert.Same(t, negativeStateHandler, proxy.GetStateHandler())
 
 	assert.PanicsWithValue(t, proxyTestPanic.Message, func() {
-		proxy.ExecuteCheckedSupplier(testutil.ErrorCheckedSupplier(proxyTestPanic))
+		proxy.Execute(testutil.PanicRunnable(proxyTestPanic))
 	})
 
 	assert.Same(t, negativeStateHandler, proxy.GetStateHandler())
 
-	negativeStateHandler.AssertCalled(t, "ExecuteCheckedSupplier", mock.Anything)
+	negativeStateHandler.AssertCalled(t, "ExecuteChecked", mock.Anything)
 	negativeStateHandler.AssertNumberOfCalls(t, "EvaluateState", 2)
 }
