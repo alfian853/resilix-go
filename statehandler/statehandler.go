@@ -15,9 +15,9 @@ type DefaultStateHandler struct {
 	StateHandler
 	executor.DefaultExecutorExt
 
-	defExecutor     *executor.DefaultExecutor
-	context         *context.Context
-	slidingWindow   slidingwindow.SlidingWindow
+	defExecutor   *executor.DefaultExecutor
+	context       *context.Context
+	slidingWindow slidingwindow.SlidingWindow
 }
 
 func (defHandler *DefaultStateHandler) Decorate(

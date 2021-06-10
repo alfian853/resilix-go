@@ -7,11 +7,11 @@ import (
 
 func CreateRetryExecutor(ctx *context.Context) RetryExecutor {
 	switch ctx.Config.RetryStrategy {
-	case consts.RETRY_OPTIMISTIC:
+	case consts.Retry_Optimistic:
 		return new(OptimisticRetryExecutor).Decorate(ctx)
-	case consts.RETRY_PESSIMISTIC:
+	case consts.Retry_Pessimistic:
 		return new(PessimisticRetryExecutor).Decorate(ctx)
 	}
 
-	return nil
+	panic("Unknown RetryStrategy: " + ctx.Config.RetryStrategy)
 }

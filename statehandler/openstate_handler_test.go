@@ -15,7 +15,7 @@ func TestOpenState_movingStateAfterWaitingDurationIsSatisfied(t *testing.T) {
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 10
 	ctx.Config.ErrorThreshold = 0.5
-	ctx.Config.RetryStrategy = consts.RETRY_OPTIMISTIC
+	ctx.Config.RetryStrategy = consts.Retry_Optimistic
 	ctx.Config.MinimumCallToEvaluate = 3
 	ctx.Config.NumberOfRetryInHalfOpenState = 10
 	ctx.Config.WaitDurationInOpenState = 200

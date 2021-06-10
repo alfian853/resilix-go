@@ -6,12 +6,12 @@ import (
 )
 
 func CreateSlidingWindow(conf *conf.Configuration) SlidingWindow {
-	switch conf.RetryStrategy {
-	case consts.RETRY_OPTIMISTIC:
+	switch conf.SlidingWindowStrategy {
+	case consts.SwStrategy_CountBased:
 		return NewCountBasedSlidingWindow(conf)
-	case consts.RETRY_PESSIMISTIC:
+	case consts.SwStrategy_TimeBased:
 		return NewTimeBasedSlidingWindow(conf)
 	}
 
-	return nil
+	panic("Unknown SlidingWindowStrategy: " + conf.SlidingWindowStrategy)
 }

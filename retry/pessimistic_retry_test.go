@@ -46,7 +46,7 @@ func TestPessimisticRetryRejected(t *testing.T) {
 	ctx.Config.SlidingWindowMaxSize = 50
 	ctx.Config.ErrorThreshold = 0.3
 	ctx.Config.NumberOfRetryInHalfOpenState = 100
-	ctx.Config.RetryStrategy = consts.RETRY_PESSIMISTIC
+	ctx.Config.RetryStrategy = consts.Retry_Pessimistic
 	var wg sync.WaitGroup
 
 	retryExecutor := new(PessimisticRetryExecutor).Decorate(ctx)
@@ -84,7 +84,7 @@ func TestPessimisticRetryAcceptedCase(t *testing.T) {
 	ctx.Config.SlidingWindowMaxSize = 50
 	ctx.Config.ErrorThreshold = 0.8
 	ctx.Config.NumberOfRetryInHalfOpenState = 100
-	ctx.Config.RetryStrategy = consts.RETRY_PESSIMISTIC
+	ctx.Config.RetryStrategy = consts.Retry_Pessimistic
 	var wg sync.WaitGroup
 
 	retryExecutor := new(PessimisticRetryExecutor).Decorate(ctx)

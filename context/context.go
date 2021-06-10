@@ -21,6 +21,8 @@ func NewContextDefault() *Context {
 func NewContext(conf *config.Configuration) *Context {
 	if conf == nil {
 		return NewContextDefault()
+	} else {
+		config.Validate(conf)
 	}
 
 	ctx := new(Context)

@@ -5,8 +5,8 @@ type RetryState int32
 
 const (
 	// RetryStrategy
-	RETRY_PESSIMISTIC = "pessimistic"
-	RETRY_OPTIMISTIC  = "optimistic"
+	Retry_Pessimistic RetryStrategy = "pessimistic"
+	Retry_Optimistic  RetryStrategy = "optimistic"
 )
 
 const (
