@@ -2,6 +2,7 @@ package retry
 
 import (
 	"github.com/alfian853/resilix-go/context"
+	"github.com/alfian853/resilix-go/executor"
 	"github.com/alfian853/resilix-go/util"
 	"sync/atomic"
 )
@@ -19,14 +20,13 @@ type PessimisticRetryExecutor struct {
 }
 
 func (retry *PessimisticRetryExecutor) Decorate(ctx *context.Context) *PessimisticRetryExecutor {
-	retry.ctx = ctx
-	retry.config = ctx.Config
-	retry.isAvailable = util.NewInt32(Available)
 	retry.OptimisticRetryExecutor.Decorate(ctx)
+	retry.defExecutor = new(executor.DefaultExecutor).Decorate(retry)
+	retry.isAvailable = util.NewInt32(Available)
 	return retry
 }
 
-func (retry *PessimisticRetryExecutor) acquireAndUpdateRetryPermission() bool {
+func (retry *PessimisticRetryExecutor) AcquirePermission() bool {
 	return atomic.SwapInt32(retry.isAvailable, NotAvailable) == Available &&
 		retry.OptimisticRetryExecutor.AcquirePermission()
 }
