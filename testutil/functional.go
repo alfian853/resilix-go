@@ -5,8 +5,24 @@ func CheckedRunnable() func() error {
 		return nil
 	}
 }
-func DoNothingRunnable() func() {
-	return func() {}
+
+func SpyRunnable(isRun *bool) func() {
+	return func() {
+		*isRun = true
+	}
+}
+
+func SpyCheckedRunnable(isRun *bool) func() error {
+	return func() error {
+		*isRun = true
+		return nil
+	}
+}
+
+func PanicRunnable(any interface{}) func() {
+	return func() {
+		panic(any)
+	}
 }
 
 func PanicCheckedRunnable(any interface{}) func() error {
@@ -15,8 +31,8 @@ func PanicCheckedRunnable(any interface{}) func() error {
 	}
 }
 
-func PanicRunnable(any interface{}) func() {
-	return func() {
+func PanicSupplier(any interface{}) func() interface{} {
+	return func() interface{} {
 		panic(any)
 	}
 }
@@ -32,14 +48,27 @@ func ErrorCheckedSupplier(err error) func() (interface{}, error) {
 		return nil, err
 	}
 }
-func TrueCheckedSupplier() func() (interface{}, error) {
+
+func Supplier(any interface{}) func() interface{} {
+	return func() interface{} {
+		return any
+	}
+}
+
+func CheckedSupplier(any interface{}) func() (interface{}, error) {
 	return func() (interface{}, error) {
-		return true, nil
+		return any, nil
 	}
 }
 
 func TrueSupplier() func() interface{} {
 	return func() interface{} {
 		return true
+	}
+}
+
+func TrueCheckedSupplier() func() (interface{}, error) {
+	return func() (interface{}, error) {
+		return true, nil
 	}
 }
