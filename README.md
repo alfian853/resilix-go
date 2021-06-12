@@ -9,7 +9,11 @@
 Resilix-go is a fault tolerance library designed to be flexible on its failure handling with configurable parameters to suit any fault tolerance strategy.
 
 ## Usage Example
-You can take a look at this [demo project](https://github.com/alfian853/resilix-demo)
+
+```go
+import "github.com/alfian853/resilix-go/resilix"
+```
+You can take a look at this [demo project](https://github.com/alfian853/resilix-go-demo)
 
 ```go 
 // Resilix execution will recover any panic occured in runtime.
@@ -17,39 +21,52 @@ executed, result, err = resilix.Go("thirdparty-1").ExecuteSupplier(func() interf
     return CallThirdPartyApi(request)
 })
 
-// if there is result and error returned from CallThirdPartyApiWithErrorHandling(request), the result and error will be returned
-// but if there is a unhandled panic occured, it returns nil(result) and error(util.UnhandledError)
+// if a result and an error returned from CallThirdPartyApiWithErrorHandling(request), both will be returned
+// but if there is a unhandled panic occured, it returns nil(for the result) and an error(util.UnhandledError)
 executed, result, err = resilix.Go("thirdparty-1").ExecuteCheckedSupplier(func() (interface{}, error) {
     return CallThirdPartyApiWithErrorHandling(request)
 })
 
-// if panic occurred Somefunction(), it will be counted as failure
+// if a panic occurred Somefunction(), it will be counted as failure
 executed, err = resilix.Go("some-process-1").Execute(SomeFunction)
 
-// if error returned SomefunctionWithErrorHandling(), it also will be counted as failure
+// if an error returned SomefunctionWithErrorHandling(), it also will be counted as failure
 executed, err = resilix.Go("some-process-2").ExecuteChecked(SomeFunctionWithErrorHandling)
+```
+Configuration example:
+```go
+package yours
+
+import (
+    "github.com/alfian853/resilix-go/config"
+    "github.com/alfian853/resilix-go/resilix"
+)
+
+func initResilix() {
+	cfg := config.NewConfiguration()
+	cfg.ErrorThreshold = 0.2
+	cfg.SlidingWindowStrategy = config.SwStrategy_CountBased
+	cfg.RetryStrategy = config.RetryStrategy_Pessimistic
+	cfg.WaitDurationInOpenState = 5000
+	cfg.SlidingWindowMaxSize = 10
+	cfg.NumberOfRetryInHalfOpenState = 5
+	cfg.MinimumCallToEvaluate = 2
+
+	// register the "foo" contextKey to resilix
+	resilix.Register("foo", cfg)
+}
+
+func main()  {
+	initResilix()
+
+	// execution on behalf the "foo" contextKey
+	resilix.Go("foo").Execute(SomeFunc)
+}
 ```
 
 if you want to customize the configuration please read the [Configuration Guidelines](##Configuration)
 
 ## Configuration Guidelines
-Configuration example:
-```go
-cfg := config.NewConfiguration()
-cfg.ErrorThreshold = 0.2
-cfg.SlidingWindowStrategy = config.SwStrategy_CountBased
-cfg.RetryStrategy = config.RetryStrategy_Pessimistic
-cfg.WaitDurationInOpenState = 5000
-cfg.SlidingWindowMaxSize = 10
-cfg.NumberOfRetryInHalfOpenState = 5
-cfg.MinimumCallToEvaluate = 2
-
-// register the "foo" contextKey to resilix
-resilix.Register("foo", cfg)
-
-// execution on behalf the "foo" contextKey
-resilix.Go("foo").Execute(SomeFunc)
-```
 
 ### Config.ErrorThreshold
 Configures the error threshold in percentage in close state and half-open state (for retry process).
