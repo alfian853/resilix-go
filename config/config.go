@@ -1,16 +1,12 @@
 package config
 
-import (
-	"github.com/alfian853/resilix-go/consts"
-)
-
 const (
 	SECONDS_IN_MS = 1000
 )
 
 type Configuration struct {
-	SlidingWindowStrategy        consts.SwStrategy
-	RetryStrategy                consts.RetryStrategy
+	SlidingWindowStrategy        SwStrategy
+	RetryStrategy                RetryStrategy
 	SlidingWindowTimeRange       int64
 	SlidingWindowMaxSize         int
 	MinimumCallToEvaluate        int
@@ -22,8 +18,8 @@ type Configuration struct {
 func NewConfiguration() *Configuration {
 	config := Configuration{}
 
-	config.SlidingWindowStrategy = consts.SwStrategy_CountBased
-	config.RetryStrategy = consts.RetryStrategy_Pessimistic
+	config.SlidingWindowStrategy = SwStrategy_CountBased
+	config.RetryStrategy = RetryStrategy_Pessimistic
 	config.SlidingWindowTimeRange = 10 * SECONDS_IN_MS
 	config.SlidingWindowMaxSize = 20
 	config.MinimumCallToEvaluate = 5
@@ -70,22 +66,22 @@ func Validate(config *Configuration) {
 
 }
 
-func isValidSlidingWindowStrategy(strategy consts.SwStrategy) bool {
+func isValidSlidingWindowStrategy(strategy SwStrategy) bool {
 	switch strategy {
-	case consts.SwStrategy_CountBased:
+	case SwStrategy_CountBased:
 		return true
-	case consts.SwStrategy_TimeBased:
+	case SwStrategy_TimeBased:
 		return true
 	}
 
 	return false
 }
 
-func isValidRetryStrategy(strategy consts.RetryStrategy) bool {
+func isValidRetryStrategy(strategy RetryStrategy) bool {
 	switch strategy {
-	case consts.RetryStrategy_Optimistic:
+	case RetryStrategy_Optimistic:
 		return true
-	case consts.RetryStrategy_Pessimistic:
+	case RetryStrategy_Pessimistic:
 		return true
 	}
 

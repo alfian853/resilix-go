@@ -14,7 +14,7 @@ func RandInt(min int, max int) int {
 	if max < min {
 		panic("max should be greater than min")
 	}
-	return min + rand.Intn(max-min+ 1)
+	return min + rand.Intn(max-min+1)
 }
 
 func RandSleep(min int, max int) {

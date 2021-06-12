@@ -2,7 +2,6 @@ package slidingwindow
 
 import (
 	"github.com/alfian853/resilix-go/config"
-	"github.com/alfian853/resilix-go/consts"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -10,10 +9,10 @@ import (
 func TestSlidingWindowFactory(t *testing.T) {
 	cfg := config.NewConfiguration()
 
-	cfg.SlidingWindowStrategy = consts.SwStrategy_CountBased
+	cfg.SlidingWindowStrategy = config.SwStrategy_CountBased
 	assert.IsType(t, &CountBasedSlidingWindow{}, CreateSlidingWindow(cfg))
 
-	cfg.SlidingWindowStrategy = consts.SwStrategy_TimeBased
+	cfg.SlidingWindowStrategy = config.SwStrategy_TimeBased
 	assert.IsType(t, &TimeBasedSlidingWindow{}, CreateSlidingWindow(cfg))
 
 	cfg.SlidingWindowStrategy = "nothing"

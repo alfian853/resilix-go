@@ -1,7 +1,7 @@
 package statehandler
 
 import (
-	conf "github.com/alfian853/resilix-go/config"
+	"github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/context"
 	"github.com/alfian853/resilix-go/util"
 )
@@ -9,7 +9,7 @@ import (
 type OpenStateHandler struct {
 	DefaultStateHandler
 
-	configuration  *conf.Configuration
+	cfg            *config.Configuration
 	stateContainer StateContainer
 	timeEnd        int64
 }
@@ -17,8 +17,8 @@ type OpenStateHandler struct {
 func (stateHandler *OpenStateHandler) Decorate(ctx *context.Context, stateContainer StateContainer) *OpenStateHandler {
 	stateHandler.DefaultStateHandler.Decorate(ctx, stateHandler, stateHandler)
 	stateHandler.stateContainer = stateContainer
-	stateHandler.configuration = ctx.Config
-	stateHandler.timeEnd = util.GetTimestamp() + stateHandler.configuration.WaitDurationInOpenState
+	stateHandler.cfg = ctx.Config
+	stateHandler.timeEnd = util.GetTimestamp() + stateHandler.cfg.WaitDurationInOpenState
 
 	return stateHandler
 }

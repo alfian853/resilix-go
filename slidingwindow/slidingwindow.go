@@ -1,7 +1,7 @@
 package slidingwindow
 
 import (
-	conf "github.com/alfian853/resilix-go/config"
+	"github.com/alfian853/resilix-go/config"
 	"sync"
 )
 
@@ -27,14 +27,14 @@ type DefaultSlidingWindowExt interface {
 type DefaultSlidingWindow struct {
 	SlidingWindow
 	swindowExt   DefaultSlidingWindowExt
-	config       *conf.Configuration
+	cfg          *config.Configuration
 	observerLock sync.Mutex
 	observers    []SwObserver
 }
 
-func (swindow *DefaultSlidingWindow) Decorate(swindowExt DefaultSlidingWindowExt, config *conf.Configuration) {
+func (swindow *DefaultSlidingWindow) Decorate(swindowExt DefaultSlidingWindowExt, cfg *config.Configuration) {
 	swindow.swindowExt = swindowExt
-	swindow.config = config
+	swindow.cfg = cfg
 	swindow.observerLock = sync.Mutex{}
 	swindow.observers = make([]SwObserver, 0)
 }
@@ -84,7 +84,7 @@ func (swindow *DefaultSlidingWindow) AckAttempt(success bool) {
 }
 
 func (swindow *DefaultSlidingWindow) GetErrorRate() float32 {
-	if swindow.swindowExt.getQueSize() < swindow.config.MinimumCallToEvaluate {
+	if swindow.swindowExt.getQueSize() < swindow.cfg.MinimumCallToEvaluate {
 		return 0
 	}
 

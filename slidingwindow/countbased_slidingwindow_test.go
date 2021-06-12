@@ -1,7 +1,7 @@
 package slidingwindow
 
 import (
-	conf "github.com/alfian853/resilix-go/config"
+	"github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/testutil"
 	"github.com/alfian853/resilix-go/util"
 	"github.com/stretchr/testify/assert"
@@ -15,9 +15,9 @@ const (
 )
 
 func initCountBasedSlidingWindow() *CountBasedSlidingWindow {
-	config := conf.NewConfiguration()
-	config.SlidingWindowMaxSize = windowSize
-	return NewCountBasedSlidingWindow(config)
+	cfg := config.NewConfiguration()
+	cfg.SlidingWindowMaxSize = windowSize
+	return NewCountBasedSlidingWindow(cfg)
 }
 
 //testcase: fire with 25 random ack followed by 10(70% success) ack in arbitrary order

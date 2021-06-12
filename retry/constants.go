@@ -1,13 +1,6 @@
-package consts
+package retry
 
-type RetryStrategy string
 type RetryState int32
-
-const (
-	// RetryStrategy
-	RetryStrategy_Pessimistic RetryStrategy = "pessimistic"
-	RetryStrategy_Optimistic  RetryStrategy = "optimistic"
-)
 
 const (
 	// RetryState

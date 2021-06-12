@@ -1,7 +1,7 @@
 package statehandler
 
 import (
-	"github.com/alfian853/resilix-go/consts"
+	"github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/context"
 	"github.com/alfian853/resilix-go/slidingwindow"
 	"github.com/alfian853/resilix-go/testutil"
@@ -18,7 +18,7 @@ func TestCloseStateHandler_minCallToEvaluate(t *testing.T) {
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 10
 	ctx.Config.ErrorThreshold = 0.5
-	ctx.Config.RetryStrategy = consts.RetryStrategy_Optimistic
+	ctx.Config.RetryStrategy = config.RetryStrategy_Optimistic
 	ctx.Config.MinimumCallToEvaluate = 3
 	ctx.Config.NumberOfRetryInHalfOpenState = 10
 	ctx.Config.WaitDurationInOpenState = 100000000
@@ -57,7 +57,7 @@ func TestCloseStateHandler_stillCloseAfterNumberOfAck(t *testing.T) {
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 10
 	ctx.Config.ErrorThreshold = 0.5
-	ctx.Config.RetryStrategy = consts.RetryStrategy_Optimistic
+	ctx.Config.RetryStrategy = config.RetryStrategy_Optimistic
 	ctx.Config.MinimumCallToEvaluate = 3
 	ctx.Config.NumberOfRetryInHalfOpenState = 10
 	ctx.Config.WaitDurationInOpenState = 100000000
@@ -100,7 +100,7 @@ func TestCloseStateHandler_moveToOpenState(t *testing.T) {
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 10
 	ctx.Config.ErrorThreshold = 0.5
-	ctx.Config.RetryStrategy = consts.RetryStrategy_Optimistic
+	ctx.Config.RetryStrategy = config.RetryStrategy_Optimistic
 	ctx.Config.MinimumCallToEvaluate = 3
 	ctx.Config.NumberOfRetryInHalfOpenState = 10
 	ctx.Config.WaitDurationInOpenState = 100000000

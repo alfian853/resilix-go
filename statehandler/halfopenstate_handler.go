@@ -1,8 +1,7 @@
 package statehandler
 
 import (
-	conf "github.com/alfian853/resilix-go/config"
-	"github.com/alfian853/resilix-go/consts"
+	"github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/context"
 	"github.com/alfian853/resilix-go/retry"
 	"github.com/alfian853/resilix-go/util"
@@ -11,7 +10,7 @@ import (
 type HalfOpenStateHandler struct {
 	DefaultStateHandler
 
-	configuration  *conf.Configuration
+	cfg            *config.Configuration
 	stateContainer StateContainer
 	timeEnd        int64
 	retryExecutor  retry.RetryExecutor
@@ -20,8 +19,8 @@ type HalfOpenStateHandler struct {
 func (stateHandler *HalfOpenStateHandler) Decorate(ctx *context.Context, stateContainer StateContainer) *HalfOpenStateHandler {
 	stateHandler.DefaultStateHandler.Decorate(ctx, stateHandler, stateHandler)
 	stateHandler.stateContainer = stateContainer
-	stateHandler.configuration = ctx.Config
-	stateHandler.timeEnd = util.GetTimestamp() + stateHandler.configuration.WaitDurationInOpenState
+	stateHandler.cfg = ctx.Config
+	stateHandler.timeEnd = util.GetTimestamp() + stateHandler.cfg.WaitDurationInOpenState
 	stateHandler.retryExecutor = retry.CreateRetryExecutor(ctx)
 	return stateHandler
 }
@@ -47,17 +46,17 @@ func (stateHandler *HalfOpenStateHandler) AcquirePermission() bool {
 
 func (stateHandler *HalfOpenStateHandler) EvaluateState() {
 	switch stateHandler.retryExecutor.GetRetryState() {
-	case consts.RetryState_Accepted:
+	case retry.RetryState_Accepted:
 		newStateHandler := new(CloseStateHandler).Decorate(stateHandler.context, stateHandler.stateContainer)
 		stateHandler.stateContainer.SetStateHandler(newStateHandler)
 		break
 
-	case consts.RetryState_Rejected:
+	case retry.RetryState_Rejected:
 		newStateHandler := new(OpenStateHandler).Decorate(stateHandler.context, stateHandler.stateContainer)
 		stateHandler.stateContainer.SetStateHandler(newStateHandler)
 		break
 
-	case consts.RetryState_OnGoing:
+	case retry.RetryState_OnGoing:
 		// do nothing
 		break
 	}

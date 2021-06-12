@@ -1,7 +1,7 @@
 package resilix
 
 import (
-	conf "github.com/alfian853/resilix-go/config"
+	"github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/context"
 	"github.com/alfian853/resilix-go/proxy"
 )
@@ -15,11 +15,11 @@ func Go(contextKey string) proxy.ResilixExecutor {
 		return val
 	}
 
-	return Register(contextKey, conf.NewConfiguration())
+	return Register(contextKey, config.NewConfiguration())
 }
 
-func Register(contextKey string, config *conf.Configuration) proxy.ResilixExecutor {
-	ctx := context.NewContext(config)
+func Register(contextKey string, cfg *config.Configuration) proxy.ResilixExecutor {
+	ctx := context.NewContext(cfg)
 	executor := proxy.NewResilixProxy(ctx)
 
 	executorMap[contextKey] = executor

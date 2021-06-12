@@ -1,7 +1,7 @@
 package retry
 
 import (
-	"github.com/alfian853/resilix-go/consts"
+	"github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/context"
 	"github.com/alfian853/resilix-go/testutil"
 	"github.com/alfian853/resilix-go/util"
@@ -42,19 +42,18 @@ func tryHardFailed(t *testing.T, retryExecutor RetryExecutor, level int, isRecur
 	assert.Contains(t, err.Error(), randErrorMessage)
 }
 
-
 func TestPessimisticRetryRejected(t *testing.T) {
 	//init
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 50
 	ctx.Config.ErrorThreshold = 0.3
 	ctx.Config.NumberOfRetryInHalfOpenState = 1000
-	ctx.Config.RetryStrategy = consts.RetryStrategy_Pessimistic
+	ctx.Config.RetryStrategy = config.RetryStrategy_Pessimistic
 	var wg sync.WaitGroup
 
 	retryExecutor := new(PessimisticRetryExecutor).Decorate(ctx)
 
-	assert.Equal(t, consts.RetryState_OnGoing, retryExecutor.GetRetryState())
+	assert.Equal(t, RetryState_OnGoing, retryExecutor.GetRetryState())
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
 
 	minFailAck := 300
@@ -78,7 +77,7 @@ func TestPessimisticRetryRejected(t *testing.T) {
 	assert.True(t, hasRecursiveCall)
 	assert.True(t, retryExecutor.getErrorRate() >= ctx.Config.ErrorThreshold)
 	assert.False(t, retryExecutor.AcquirePermission())
-	assert.Equal(t, consts.RetryState_Rejected, retryExecutor.GetRetryState())
+	assert.Equal(t, RetryState_Rejected, retryExecutor.GetRetryState())
 	assert.Equal(t, ctx.Config.NumberOfRetryInHalfOpenState, *retryExecutor.numberOfAck)
 }
 
@@ -88,12 +87,12 @@ func TestPessimisticRetryAccepted(t *testing.T) {
 	ctx.Config.SlidingWindowMaxSize = 50
 	ctx.Config.ErrorThreshold = 0.8
 	ctx.Config.NumberOfRetryInHalfOpenState = 1000
-	ctx.Config.RetryStrategy = consts.RetryStrategy_Pessimistic
+	ctx.Config.RetryStrategy = config.RetryStrategy_Pessimistic
 	var wg sync.WaitGroup
 
 	retryExecutor := new(PessimisticRetryExecutor).Decorate(ctx)
 
-	assert.Equal(t, consts.RetryState_OnGoing, retryExecutor.GetRetryState())
+	assert.Equal(t, RetryState_OnGoing, retryExecutor.GetRetryState())
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
 
 	minSuccessAck := 801
@@ -119,5 +118,5 @@ func TestPessimisticRetryAccepted(t *testing.T) {
 	assert.True(t, hasRecursiveCall)
 	assert.True(t, retryExecutor.getErrorRate() < ctx.Config.ErrorThreshold)
 	assert.False(t, retryExecutor.AcquirePermission())
-	assert.Equal(t, consts.RetryState_Accepted, retryExecutor.GetRetryState())
+	assert.Equal(t, RetryState_Accepted, retryExecutor.GetRetryState())
 }

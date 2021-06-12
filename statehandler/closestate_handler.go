@@ -1,27 +1,27 @@
 package statehandler
 
 import (
-	conf "github.com/alfian853/resilix-go/config"
+	"github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/context"
 )
 
 type CloseStateHandler struct {
 	DefaultStateHandler
 
-	configuration  *conf.Configuration
+	cfg            *config.Configuration
 	stateContainer StateContainer
 }
 
 func (stateHandler *CloseStateHandler) Decorate(ctx *context.Context, stateContainer StateContainer) *CloseStateHandler {
 	stateHandler.DefaultStateHandler.Decorate(ctx, stateHandler, stateHandler)
 	stateHandler.stateContainer = stateContainer
-	stateHandler.configuration = ctx.Config
+	stateHandler.cfg = ctx.Config
 	stateHandler.slidingWindow.Clear()
 	return stateHandler
 }
 
 func (stateHandler *CloseStateHandler) AcquirePermission() bool {
-	return stateHandler.slidingWindow.GetErrorRate() < stateHandler.configuration.ErrorThreshold
+	return stateHandler.slidingWindow.GetErrorRate() < stateHandler.cfg.ErrorThreshold
 }
 
 func (stateHandler *CloseStateHandler) EvaluateState() {

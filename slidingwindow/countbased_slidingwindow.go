@@ -1,8 +1,7 @@
 package slidingwindow
 
 import (
-	conf "github.com/alfian853/resilix-go/config"
-	"github.com/alfian853/resilix-go/consts"
+	"github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/util"
 	"github.com/oleiade/lane"
 	"sync/atomic"
@@ -11,17 +10,17 @@ import (
 type CountBasedSlidingWindow struct {
 	DefaultSlidingWindow
 	DefaultSlidingWindowExt
-	lock       consts.SwLock
-	config     *conf.Configuration
+	lock       SwLock
+	cfg        *config.Configuration
 	errorCount *int32
 	windowQue  *lane.Deque
 }
 
-func NewCountBasedSlidingWindow(config *conf.Configuration) *CountBasedSlidingWindow {
+func NewCountBasedSlidingWindow(config *config.Configuration) *CountBasedSlidingWindow {
 	swindow := CountBasedSlidingWindow{}
-	swindow.lock = util.NewInt32(consts.SwLock_Available)
+	swindow.lock = util.NewInt32(SwLock_Available)
 	swindow.errorCount = util.NewInt32(0)
-	swindow.config = config
+	swindow.cfg = config
 	swindow.windowQue = lane.NewDeque()
 	swindow.DefaultSlidingWindow.Decorate(&swindow, config)
 	return &swindow
@@ -51,19 +50,19 @@ func (swindow *CountBasedSlidingWindow) getErrorRateAfterMinCallSatisfied() floa
 }
 
 func (swindow *CountBasedSlidingWindow) Clear() {
-	defer atomic.SwapInt32(swindow.lock, consts.SwLock_Available)
+	defer atomic.SwapInt32(swindow.lock, SwLock_Available)
 
-	if atomic.SwapInt32(swindow.lock, consts.SwLock_ClearingAll) < consts.SwLock_ClearingAll {
+	if atomic.SwapInt32(swindow.lock, SwLock_ClearingAll) < SwLock_ClearingAll {
 		swindow.windowQue = lane.NewDeque()
 	}
 }
 
 func (swindow *CountBasedSlidingWindow) examineAttemptWindow() {
 
-	defer atomic.SwapInt32(swindow.lock, consts.SwLock_Available)
+	defer atomic.SwapInt32(swindow.lock, SwLock_Available)
 
-	if atomic.SwapInt32(swindow.lock, consts.SwLock_Clearing) < consts.SwLock_Clearing {
-		for swindow.windowQue.Size() > swindow.config.SlidingWindowMaxSize {
+	if atomic.SwapInt32(swindow.lock, SwLock_Clearing) < SwLock_Clearing {
+		for swindow.windowQue.Size() > swindow.cfg.SlidingWindowMaxSize {
 			if swindow.windowQue.Shift() == false {
 				atomic.AddInt32(swindow.errorCount, -1)
 			}

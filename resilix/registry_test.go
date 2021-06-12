@@ -2,7 +2,6 @@ package resilix
 
 import (
 	"github.com/alfian853/resilix-go/config"
-	"github.com/alfian853/resilix-go/consts"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -19,7 +18,7 @@ func TestCreate(t *testing.T) {
 	assert.Same(t, executor1, Go("context-1"))
 
 	config2 := config.NewConfiguration()
-	config2.SlidingWindowStrategy = consts.SwStrategy_TimeBased
+	config2.SlidingWindowStrategy = config.SwStrategy_TimeBased
 	executor2 := Register("context-2", config2)
 
 	assert.NotNil(t, executor2)

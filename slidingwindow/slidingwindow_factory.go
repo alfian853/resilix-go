@@ -1,17 +1,16 @@
 package slidingwindow
 
 import (
-	conf "github.com/alfian853/resilix-go/config"
-	"github.com/alfian853/resilix-go/consts"
+	"github.com/alfian853/resilix-go/config"
 )
 
-func CreateSlidingWindow(conf *conf.Configuration) SlidingWindow {
-	switch conf.SlidingWindowStrategy {
-	case consts.SwStrategy_CountBased:
-		return NewCountBasedSlidingWindow(conf)
-	case consts.SwStrategy_TimeBased:
-		return NewTimeBasedSlidingWindow(conf)
+func CreateSlidingWindow(cfg *config.Configuration) SlidingWindow {
+	switch cfg.SlidingWindowStrategy {
+	case config.SwStrategy_CountBased:
+		return NewCountBasedSlidingWindow(cfg)
+	case config.SwStrategy_TimeBased:
+		return NewTimeBasedSlidingWindow(cfg)
 	}
 
-	panic("Unknown SlidingWindowStrategy: " + string(conf.SlidingWindowStrategy))
+	panic("Unknown SlidingWindowStrategy: " + string(cfg.SlidingWindowStrategy))
 }

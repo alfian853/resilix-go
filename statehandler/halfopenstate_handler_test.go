@@ -1,7 +1,7 @@
 package statehandler
 
 import (
-	"github.com/alfian853/resilix-go/consts"
+	"github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/context"
 	"github.com/alfian853/resilix-go/slidingwindow"
 	"github.com/alfian853/resilix-go/testutil"
@@ -17,7 +17,7 @@ func TestHalfOpenState_retryAndSuccess(t *testing.T) {
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 10
 	ctx.Config.ErrorThreshold = 0.5 //be careful to edit this, see other comments below
-	ctx.Config.RetryStrategy = consts.RetryStrategy_Optimistic
+	ctx.Config.RetryStrategy = config.RetryStrategy_Optimistic
 	ctx.Config.MinimumCallToEvaluate = 3
 	ctx.Config.NumberOfRetryInHalfOpenState = 5 //be careful to edit this, see other comments below
 	ctx.Config.WaitDurationInOpenState = 100000000
@@ -66,7 +66,7 @@ func TestHalfOpenState_retryAndFailed(t *testing.T) {
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 10
 	ctx.Config.ErrorThreshold = 0.5 //be careful to edit this, see other comments below
-	ctx.Config.RetryStrategy = consts.RetryStrategy_Optimistic
+	ctx.Config.RetryStrategy = config.RetryStrategy_Optimistic
 	ctx.Config.MinimumCallToEvaluate = 3
 	ctx.Config.NumberOfRetryInHalfOpenState = 6 //be careful to edit this, see other comments below
 	ctx.Config.WaitDurationInOpenState = 100000000

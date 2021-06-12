@@ -1,8 +1,7 @@
 package retry
 
 import (
-	conf "github.com/alfian853/resilix-go/config"
-	"github.com/alfian853/resilix-go/consts"
+	"github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/context"
 	"github.com/alfian853/resilix-go/executor"
 	"github.com/alfian853/resilix-go/util"
@@ -14,43 +13,43 @@ type OptimisticRetryExecutor struct {
 	RetryExecutor
 	executor.DefaultExecutorExt
 	defExecutor   *executor.DefaultExecutor
-	retryState    *consts.RetryState
+	retryState    *RetryState
 	writeNORLock  sync.Mutex
 	numberOfRetry *int32
 	numberOfAck   *int32
 	numberOfFail  *int32
 	ctx           *context.Context
-	config        *conf.Configuration
+	cfg           *config.Configuration
 }
 
 func (retry *OptimisticRetryExecutor) Decorate(ctx *context.Context) *OptimisticRetryExecutor {
 	retry.defExecutor = new(executor.DefaultExecutor).Decorate(retry)
-	retry.retryState = consts.NewRetryState(consts.RetryState_OnGoing)
+	retry.retryState = NewRetryState(RetryState_OnGoing)
 	retry.ctx = ctx
-	retry.config = ctx.Config
+	retry.cfg = ctx.Config
 	retry.numberOfRetry = util.NewInt32(0)
 	retry.numberOfFail = util.NewInt32(0)
 	retry.numberOfAck = util.NewInt32(0)
 	return retry
 }
 
-func (retry *OptimisticRetryExecutor) GetRetryState() consts.RetryState {
+func (retry *OptimisticRetryExecutor) GetRetryState() RetryState {
 
-	if consts.RetryState(atomic.LoadInt32((*int32)(retry.retryState))) != consts.RetryState_OnGoing {
+	if RetryState(atomic.LoadInt32((*int32)(retry.retryState))) != RetryState_OnGoing {
 		return *retry.retryState
 	}
 
 	if retry.isErrorLimitExceeded() {
-		atomic.SwapInt32((*int32)(retry.retryState), int32(consts.RetryState_Rejected))
-		return consts.RetryState_Rejected
+		atomic.SwapInt32((*int32)(retry.retryState), int32(RetryState_Rejected))
+		return RetryState_Rejected
 	}
 
-	if atomic.LoadInt32(retry.numberOfAck) >= retry.config.NumberOfRetryInHalfOpenState {
-		atomic.SwapInt32((*int32)(retry.retryState), int32(consts.RetryState_Accepted))
-		return consts.RetryState_Accepted
+	if atomic.LoadInt32(retry.numberOfAck) >= retry.cfg.NumberOfRetryInHalfOpenState {
+		atomic.SwapInt32((*int32)(retry.retryState), int32(RetryState_Accepted))
+		return RetryState_Accepted
 	}
 
-	return consts.RetryState_OnGoing
+	return RetryState_OnGoing
 }
 
 func (retry *OptimisticRetryExecutor) ExecuteChecked(fun func() error) (executed bool, err error) {
@@ -68,7 +67,7 @@ unsafe to be exposed to the public due to no execution guarantee after this meth
 func (retry *OptimisticRetryExecutor) AcquirePermission() bool {
 	numberOfRetry := atomic.AddInt32(retry.numberOfRetry, 1) - 1
 
-	if numberOfRetry >= retry.config.NumberOfRetryInHalfOpenState {
+	if numberOfRetry >= retry.cfg.NumberOfRetryInHalfOpenState {
 		return false
 	} else if retry.isErrorLimitExceeded() {
 		return false
@@ -86,7 +85,7 @@ func (retry *OptimisticRetryExecutor) OnAfterExecution(success bool) {
 }
 
 func (retry *OptimisticRetryExecutor) isErrorLimitExceeded() bool {
-	return retry.getErrorRate() >= retry.config.ErrorThreshold
+	return retry.getErrorRate() >= retry.cfg.ErrorThreshold
 }
 
 func (retry *OptimisticRetryExecutor) getErrorRate() float32 {
