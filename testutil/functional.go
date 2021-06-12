@@ -6,6 +6,12 @@ func CheckedRunnable() func() error {
 	}
 }
 
+func ErrorCheckedRunnable(err error) func() error {
+	return func() error {
+		return err
+	}
+}
+
 func SpyRunnable(isRun *bool) func() {
 	return func() {
 		*isRun = true

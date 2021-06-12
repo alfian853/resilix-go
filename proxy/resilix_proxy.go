@@ -8,7 +8,8 @@ import (
 
 type ResilixExecutor interface {
 	executor.CheckedExecutor
-	executor.Executor
+	Execute(fun func()) (bool, error)
+	ExecuteSupplier(fun func() interface{}) (bool, interface{}, error)
 }
 
 type ResilixProxy struct {
@@ -48,28 +49,21 @@ func (proxy *ResilixProxy) ExecuteCheckedSupplier(fun func() (interface{}, error
 }
 
 // Executor
-func (proxy *ResilixProxy) Execute(fun func()) bool {
+func (proxy *ResilixProxy) Execute(fun func()) (bool, error) {
 
 	isExecuted, err := proxy.ExecuteChecked(func() (err error) {
 		fun()
 		return nil
 	})
 
-	if err != nil {
-		panic(err)
-	}
-	return isExecuted
+	return isExecuted, err
 }
 
-func (proxy *ResilixProxy) ExecuteSupplier(fun func() interface{}) (bool, interface{}) {
+func (proxy *ResilixProxy) ExecuteSupplier(fun func() interface{}) (bool, interface{}, error) {
 
 	isExecuted, result, err := proxy.ExecuteCheckedSupplier(func() (interface{}, error) {
 		return fun(), nil
 	})
 
-	if err != nil {
-		panic(err)
-	}
-
-	return isExecuted, result
+	return isExecuted, result, err
 }

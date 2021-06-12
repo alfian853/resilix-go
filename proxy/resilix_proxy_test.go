@@ -103,13 +103,15 @@ func TestResilixProxy_executeUnsafe(t *testing.T) {
 
 	proxy.SetStateHandler(positiveStateHandler)
 
-	executed, result := proxy.ExecuteSupplier(testutil.TrueSupplier())
+	executed, result, err := proxy.ExecuteSupplier(testutil.TrueSupplier())
 	assert.True(t, executed)
 	assert.True(t, result.(bool))
+	assert.Nil(t, err)
 
-	executed, result = proxy.ExecuteSupplier(testutil.TrueSupplier())
+	executed, result, err = proxy.ExecuteSupplier(testutil.TrueSupplier())
 	assert.True(t, executed)
 	assert.True(t, result.(bool))
+	assert.Nil(t, err)
 
 	assert.Same(t, positiveStateHandler, proxy.GetStateHandler())
 
