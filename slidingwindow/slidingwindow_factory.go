@@ -13,5 +13,5 @@ func CreateSlidingWindow(conf *conf.Configuration) SlidingWindow {
 		return NewTimeBasedSlidingWindow(conf)
 	}
 
-	panic("Unknown SlidingWindowStrategy: " + conf.SlidingWindowStrategy)
+	panic("Unknown SlidingWindowStrategy: " + string(conf.SlidingWindowStrategy))
 }

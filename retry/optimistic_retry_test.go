@@ -17,12 +17,12 @@ func TestOptimisticRetryRejected(t *testing.T) {
 	ctx.Config.SlidingWindowMaxSize = 50
 	ctx.Config.ErrorThreshold = 0.3
 	ctx.Config.NumberOfRetryInHalfOpenState = 100
-	ctx.Config.RetryStrategy = consts.Retry_Optimistic
+	ctx.Config.RetryStrategy = consts.RetryStrategy_Optimistic
 	var wg sync.WaitGroup
 
 	retryExecutor := new(OptimisticRetryExecutor).Decorate(ctx)
 
-	assert.Equal(t, consts.RETRY_ON_GOING, retryExecutor.GetRetryState())
+	assert.Equal(t, consts.RetryState_OnGoing, retryExecutor.GetRetryState())
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
 
 	minFailAck := int(ctx.Config.ErrorThreshold * float32(ctx.Config.NumberOfRetryInHalfOpenState))
@@ -52,7 +52,7 @@ func TestOptimisticRetryRejected(t *testing.T) {
 
 	assert.True(t, retryExecutor.getErrorRate() >= ctx.Config.ErrorThreshold)
 	assert.False(t, retryExecutor.AcquirePermission())
-	assert.Equal(t, consts.RETRY_REJECTED, retryExecutor.GetRetryState())
+	assert.Equal(t, consts.RetryState_Rejected, retryExecutor.GetRetryState())
 }
 
 func TestOptimisticRetryAcceptedCase(t *testing.T) {
@@ -61,12 +61,12 @@ func TestOptimisticRetryAcceptedCase(t *testing.T) {
 	ctx.Config.SlidingWindowMaxSize = 50
 	ctx.Config.ErrorThreshold = 0.8
 	ctx.Config.NumberOfRetryInHalfOpenState = 100
-	ctx.Config.RetryStrategy = consts.Retry_Optimistic
+	ctx.Config.RetryStrategy = consts.RetryStrategy_Optimistic
 	var wg sync.WaitGroup
 
 	retryExecutor := new(OptimisticRetryExecutor).Decorate(ctx)
 
-	assert.Equal(t, consts.RETRY_ON_GOING, retryExecutor.GetRetryState())
+	assert.Equal(t, consts.RetryState_OnGoing, retryExecutor.GetRetryState())
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
 
 	minSuccessAck := int(math.Ceil(float64((1-ctx.Config.ErrorThreshold)*float32(ctx.Config.NumberOfRetryInHalfOpenState))) + 1)
@@ -95,5 +95,5 @@ func TestOptimisticRetryAcceptedCase(t *testing.T) {
 
 	assert.True(t, retryExecutor.getErrorRate() < ctx.Config.ErrorThreshold)
 	assert.False(t, retryExecutor.AcquirePermission())
-	assert.Equal(t, consts.RETRY_ACCEPTED, retryExecutor.GetRetryState())
+	assert.Equal(t, consts.RetryState_Accepted, retryExecutor.GetRetryState())
 }

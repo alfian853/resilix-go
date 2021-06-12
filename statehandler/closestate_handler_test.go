@@ -18,7 +18,7 @@ func TestCloseStateHandler_minCallToEvaluate(t *testing.T) {
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 10
 	ctx.Config.ErrorThreshold = 0.5
-	ctx.Config.RetryStrategy = consts.Retry_Optimistic
+	ctx.Config.RetryStrategy = consts.RetryStrategy_Optimistic
 	ctx.Config.MinimumCallToEvaluate = 3
 	ctx.Config.NumberOfRetryInHalfOpenState = 10
 	ctx.Config.WaitDurationInOpenState = 100000000
@@ -57,7 +57,7 @@ func TestCloseStateHandler_stillCloseAfterNumberOfAck(t *testing.T) {
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 10
 	ctx.Config.ErrorThreshold = 0.5
-	ctx.Config.RetryStrategy = consts.Retry_Optimistic
+	ctx.Config.RetryStrategy = consts.RetryStrategy_Optimistic
 	ctx.Config.MinimumCallToEvaluate = 3
 	ctx.Config.NumberOfRetryInHalfOpenState = 10
 	ctx.Config.WaitDurationInOpenState = 100000000
@@ -100,7 +100,7 @@ func TestCloseStateHandler_moveToOpenState(t *testing.T) {
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 10
 	ctx.Config.ErrorThreshold = 0.5
-	ctx.Config.RetryStrategy = consts.Retry_Optimistic
+	ctx.Config.RetryStrategy = consts.RetryStrategy_Optimistic
 	ctx.Config.MinimumCallToEvaluate = 3
 	ctx.Config.NumberOfRetryInHalfOpenState = 10
 	ctx.Config.WaitDurationInOpenState = 100000000

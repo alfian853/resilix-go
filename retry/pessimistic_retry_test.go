@@ -49,12 +49,12 @@ func TestPessimisticRetryRejected(t *testing.T) {
 	ctx.Config.SlidingWindowMaxSize = 50
 	ctx.Config.ErrorThreshold = 0.3
 	ctx.Config.NumberOfRetryInHalfOpenState = 1000
-	ctx.Config.RetryStrategy = consts.Retry_Pessimistic
+	ctx.Config.RetryStrategy = consts.RetryStrategy_Pessimistic
 	var wg sync.WaitGroup
 
 	retryExecutor := new(PessimisticRetryExecutor).Decorate(ctx)
 
-	assert.Equal(t, consts.RETRY_ON_GOING, retryExecutor.GetRetryState())
+	assert.Equal(t, consts.RetryState_OnGoing, retryExecutor.GetRetryState())
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
 
 	minFailAck := 300
@@ -78,7 +78,7 @@ func TestPessimisticRetryRejected(t *testing.T) {
 	assert.True(t, hasRecursiveCall)
 	assert.True(t, retryExecutor.getErrorRate() >= ctx.Config.ErrorThreshold)
 	assert.False(t, retryExecutor.AcquirePermission())
-	assert.Equal(t, consts.RETRY_REJECTED, retryExecutor.GetRetryState())
+	assert.Equal(t, consts.RetryState_Rejected, retryExecutor.GetRetryState())
 	assert.Equal(t, ctx.Config.NumberOfRetryInHalfOpenState, *retryExecutor.numberOfAck)
 }
 
@@ -88,12 +88,12 @@ func TestPessimisticRetryAccepted(t *testing.T) {
 	ctx.Config.SlidingWindowMaxSize = 50
 	ctx.Config.ErrorThreshold = 0.8
 	ctx.Config.NumberOfRetryInHalfOpenState = 1000
-	ctx.Config.RetryStrategy = consts.Retry_Pessimistic
+	ctx.Config.RetryStrategy = consts.RetryStrategy_Pessimistic
 	var wg sync.WaitGroup
 
 	retryExecutor := new(PessimisticRetryExecutor).Decorate(ctx)
 
-	assert.Equal(t, consts.RETRY_ON_GOING, retryExecutor.GetRetryState())
+	assert.Equal(t, consts.RetryState_OnGoing, retryExecutor.GetRetryState())
 	assert.Equal(t, float32(0), retryExecutor.getErrorRate())
 
 	minSuccessAck := 801
@@ -119,5 +119,5 @@ func TestPessimisticRetryAccepted(t *testing.T) {
 	assert.True(t, hasRecursiveCall)
 	assert.True(t, retryExecutor.getErrorRate() < ctx.Config.ErrorThreshold)
 	assert.False(t, retryExecutor.AcquirePermission())
-	assert.Equal(t, consts.RETRY_ACCEPTED, retryExecutor.GetRetryState())
+	assert.Equal(t, consts.RetryState_Accepted, retryExecutor.GetRetryState())
 }

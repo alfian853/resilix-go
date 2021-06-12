@@ -17,7 +17,7 @@ func TestHalfOpenState_retryAndSuccess(t *testing.T) {
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 10
 	ctx.Config.ErrorThreshold = 0.5 //be careful to edit this, see other comments below
-	ctx.Config.RetryStrategy = consts.Retry_Optimistic
+	ctx.Config.RetryStrategy = consts.RetryStrategy_Optimistic
 	ctx.Config.MinimumCallToEvaluate = 3
 	ctx.Config.NumberOfRetryInHalfOpenState = 5 //be careful to edit this, see other comments below
 	ctx.Config.WaitDurationInOpenState = 100000000
@@ -66,7 +66,7 @@ func TestHalfOpenState_retryAndFailed(t *testing.T) {
 	ctx := context.NewContextDefault()
 	ctx.Config.SlidingWindowMaxSize = 10
 	ctx.Config.ErrorThreshold = 0.5 //be careful to edit this, see other comments below
-	ctx.Config.RetryStrategy = consts.Retry_Optimistic
+	ctx.Config.RetryStrategy = consts.RetryStrategy_Optimistic
 	ctx.Config.MinimumCallToEvaluate = 3
 	ctx.Config.NumberOfRetryInHalfOpenState = 6 //be careful to edit this, see other comments below
 	ctx.Config.WaitDurationInOpenState = 100000000

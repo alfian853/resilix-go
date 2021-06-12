@@ -23,7 +23,7 @@ func NewConfiguration() *Configuration {
 	config := Configuration{}
 
 	config.SlidingWindowStrategy = consts.SwStrategy_CountBased
-	config.RetryStrategy = consts.Retry_Pessimistic
+	config.RetryStrategy = consts.RetryStrategy_Pessimistic
 	config.SlidingWindowTimeRange = 10 * SECONDS_IN_MS
 	config.SlidingWindowMaxSize = 20
 	config.MinimumCallToEvaluate = 5
@@ -83,9 +83,9 @@ func isValidSlidingWindowStrategy(strategy consts.SwStrategy) bool {
 
 func isValidRetryStrategy(strategy consts.RetryStrategy) bool {
 	switch strategy {
-	case consts.Retry_Optimistic:
+	case consts.RetryStrategy_Optimistic:
 		return true
-	case consts.Retry_Pessimistic:
+	case consts.RetryStrategy_Pessimistic:
 		return true
 	}
 
