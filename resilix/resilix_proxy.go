@@ -1,4 +1,4 @@
-package proxy
+package resilix
 
 import (
 	"github.com/alfian853/resilix-go/context"
@@ -25,7 +25,6 @@ func NewResilixProxy(ctx *context.Context) *ResilixProxy {
 	return proxy
 }
 
-// StateContainer
 func (proxy *ResilixProxy) SetStateHandler(stateHandler statehandler.StateHandler) {
 	proxy.stateHandler = stateHandler
 }
@@ -35,20 +34,21 @@ func (proxy *ResilixProxy) GetStateHandler() statehandler.StateHandler {
 	return proxy.stateHandler
 }
 
-// CheckedExecutor
+// ExecuteChecked returns isExecuted, error (any returned or runtime error)
 func (proxy *ResilixProxy) ExecuteChecked(fun func() error) (bool, error) {
 	proxy.stateHandler.EvaluateState()
 
 	return proxy.stateHandler.ExecuteChecked(fun)
 }
 
+// ExecuteCheckedSupplier returns: isExecuted, result, error (any returned or runtime error)
 func (proxy *ResilixProxy) ExecuteCheckedSupplier(fun func() (interface{}, error)) (bool, interface{}, error) {
 	proxy.stateHandler.EvaluateState()
 
 	return proxy.stateHandler.ExecuteCheckedSupplier(fun)
 }
 
-// Executor
+// Execute returns isExecuted, error (any runtime error)
 func (proxy *ResilixProxy) Execute(fun func()) (bool, error) {
 
 	isExecuted, err := proxy.ExecuteChecked(func() (err error) {
@@ -59,6 +59,7 @@ func (proxy *ResilixProxy) Execute(fun func()) (bool, error) {
 	return isExecuted, err
 }
 
+// ExecuteSupplier returns: isExecuted, result, error (any runtime error)
 func (proxy *ResilixProxy) ExecuteSupplier(fun func() interface{}) (bool, interface{}, error) {
 
 	isExecuted, result, err := proxy.ExecuteCheckedSupplier(func() (interface{}, error) {

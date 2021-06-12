@@ -3,12 +3,11 @@ package resilix
 import (
 	"github.com/alfian853/resilix-go/config"
 	"github.com/alfian853/resilix-go/context"
-	"github.com/alfian853/resilix-go/proxy"
 )
 
-var executorMap = make(map[string]proxy.ResilixExecutor)
+var executorMap = make(map[string]ResilixExecutor)
 
-func Go(contextKey string) proxy.ResilixExecutor {
+func Go(contextKey string) ResilixExecutor {
 	val, ok := executorMap[contextKey]
 
 	if ok {
@@ -18,9 +17,9 @@ func Go(contextKey string) proxy.ResilixExecutor {
 	return Register(contextKey, config.NewConfiguration())
 }
 
-func Register(contextKey string, cfg *config.Configuration) proxy.ResilixExecutor {
+func Register(contextKey string, cfg *config.Configuration) ResilixExecutor {
 	ctx := context.NewContext(cfg)
-	executor := proxy.NewResilixProxy(ctx)
+	executor := NewResilixProxy(ctx)
 
 	executorMap[contextKey] = executor
 

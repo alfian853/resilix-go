@@ -1,4 +1,4 @@
-package proxy
+package resilix
 
 import (
 	"github.com/alfian853/resilix-go/context"
